@@ -19,11 +19,11 @@
 #include "BLE.h"
 #include "fix_fft.h"
 #include <AceButton.h>
-#include <Adafruit_NeoPixel.h>
+// #include <Adafruit_NeoPixel.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#include <ESPAsyncWebServer.h>
-#include <ESPmDNS.h>
+// #include <ESPAsyncWebServer.h>
+// #include <ESPmDNS.h>
 #include <ArduinoOTA.h>
 #include <SPIFFS.h>
 #include "Constants.h"
@@ -189,6 +189,7 @@ struct demo_struct {
         {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0, 0x0f, 0xfc, 0x3f, 0xfe, 0x7f, 0x1f, 0xf8, 0xe6, 0x67, 0xf0, 0x0f, 0xf8, 0x1f, 0x30, 0x0c, 0xc0, 0x03, 0xc0, 0x03, 0xc0, 0x01, 0x00, 0x00, 0x00, 0x00},
         demoWiFi
     },
+
     {
         "SETTING",
         "SYSTEM SETTING",
@@ -212,14 +213,14 @@ struct RotarySetting {
     uint32_t steps;
 };
 
-AsyncWebServer                      server(80);
+// AsyncWebServer                      server(80);
 U8G2_SH1106_128X64_NONAME_F_HW_I2C  u8g2(U8G2_R0, U8X8_PIN_NONE);
 Rotary                              rotary = Rotary(ENCODER_A_PIN, ENCODER_B_PIN);
 TinyGPSPlus                         gps;
 Adafruit_BME280                     bme;
 AceButton                           buttons[3];
 Button                              state = Unknown;
-Adafruit_NeoPixel                   strip = Adafruit_NeoPixel(1, PIXELS_PIN, NEO_GRB + NEO_KHZ800);
+// Adafruit_NeoPixel                   strip = Adafruit_NeoPixel(1, PIXELS_PIN, NEO_GRB + NEO_KHZ800);
 QueueHandle_t                       rotaryMsg;
 QueueHandle_t                       rotarySetting;
 TaskHandle_t                        rotaryHandler;
@@ -236,13 +237,13 @@ const uint8_t                       buttonPins [] = {
 
 void endWeb()
 {
-    server.end();
-    MDNS.end();
+    // server.end();
+    // MDNS.end();
 }
 
 // Just for testing, no functionality
 void setupWeb()
-{
+{/*
     server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
         request->send(200, "text/html", web_html );
     });
@@ -251,7 +252,7 @@ void setupWeb()
 
     MDNS.addService("http", "tcp", 80);
 
-    server.begin();
+    server.begin();*/
 }
 
 void setRotaryValue(uint32_t cur, uint32_t min, uint32_t max, uint32_t steps)
@@ -333,14 +334,14 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState)
         switch (eventType) {
         case AceButton::kEventPressed:
             DBG("transmit");
-            strip.setPixelColor(0, strip.Color(255, 0, 0));
-            strip.show();
+            // strip.setPixelColor(0, strip.Color(255, 0, 0));
+            // strip.show();
             radio.transmit();
             break;
         case AceButton::kEventReleased:
             DBG("receive");
-            strip.clear();
-            strip.show();
+            // strip.clear();
+            // strip.show();
             radio.receive();
             break;
         default:
@@ -443,10 +444,12 @@ void setup()
     rotarySetting = xQueueCreate(1, sizeof(RotarySetting));
 
     // Initialize pixel lights
+    /*
     strip.setBrightness(50);
     strip.begin();
     strip.setPixelColor(0, strip.Color(0, 255, 0));
     strip.show();
+    */
 
     //* Initializing PMU is related to other peripherals
     //* Automatically detect the revision version through GPIO detection.
@@ -508,18 +511,18 @@ void setup()
     }
     while (!rslt) {
         DBG("SA8x8 communication failed, please use ATDebug to check whether the module responds normally..");
-        strip.setPixelColor(0, strip.Color(255, 0, 0));
-        strip.show();
+        // strip.setPixelColor(0, strip.Color(255, 0, 0));
+        // strip.show();
         delay(300);
-        strip.clear();
-        strip.show();
+        // strip.clear();
+        // strip.show();
         delay(300);
     }
-
+    /*
     strip.setBrightness(twr.pdat.pixelBrightness);
     strip.clear();
     strip.show();
-
+    */
     // Initialize SD card
     if (setupSDCard()) {
         uint8_t cardType = SD.cardType();
@@ -602,8 +605,8 @@ void loop()
             DBG("DeepSleep....");
             printDeepSleep();
 
-            strip.clear();
-            strip.show();
+            // strip.clear();
+            // strip.show();
 
             radio.sleep();
 
@@ -776,15 +779,15 @@ void printMain()
         if (twr.isReceiving) {
             u8g2.drawGlyph(start_pos, 12, 0xe275);
             if (!showStrip) {
-                strip.setPixelColor(0, strip.Color(0, 255, 0));
-                strip.show();
+                // strip.setPixelColor(0, strip.Color(0, 255, 0));
+                // strip.show();
                 showStrip = true;
             }
         } else {
             if (showStrip) {
                 showStrip = false;
-                strip.setPixelColor(0, strip.Color(0, 0, 0));
-                strip.show();
+                // strip.setPixelColor(0, strip.Color(0, 0, 0));
+                // strip.show();
             }
         }
 
@@ -854,21 +857,21 @@ void printMenu( uint8_t menuSelect )
 void demoLed( uint8_t menuSelect )
 {
     int prevValue = 0;
-    int value = strip.getBrightness();
+    int value = 0; //strip.getBrightness();
     Button btnPressed;
-    strip.setPixelColor(0, strip.Color(255, 0, 0));
-    strip.show();
+    // strip.setPixelColor(0, strip.Color(255, 0, 0));
+    // strip.show();
 
     do {
         value   = readRotary(value, 0, 250, 10);
         btnPressed = readButton();
         if (prevValue != value) {
             beep();
-            strip.setBrightness(value);
+            // strip.setBrightness(value);
             if (prevValue == 0) {
-                strip.setPixelColor(0, strip.Color(255, 0, 0));
+                // strip.setPixelColor(0, strip.Color(255, 0, 0));
             }
-            strip.show();
+            // strip.show();
             prevValue  = value;
         }
         u8g2.firstPage();
@@ -897,8 +900,8 @@ void demoLed( uint8_t menuSelect )
 
     SAVE_CONFIGURE(pixelBrightness, value);
 
-    strip.clear();
-    strip.show();
+    // strip.clear();
+    // strip.show();
 }
 
 void demoSpeaker( uint8_t menuSelect )
@@ -1059,8 +1062,8 @@ void demoAlarm(uint8_t menuSelect )
 
     twr.routingMicrophoneChannel(TWRClass::TWR_MIC_TO_RADIO);
 
-    strip.clear();
-    strip.show();
+    //strip.clear();
+    //strip.show();
 }
 
 void demoMic( uint8_t menuSelect )
@@ -1174,11 +1177,11 @@ void demoGPS(uint8_t menuSelect)
         if (pps == HIGH && (millis() - lastDebounceTime) > debounceDelay) {
             ledState = !ledState;
             if (ledState) {
-                strip.setPixelColor(0, strip.Color(0, 255, 0));
+                // strip.setPixelColor(0, strip.Color(0, 255, 0));
             } else {
-                strip.clear();
+                // strip.clear();
             }
-            strip.show();
+            // strip.show();
             lastDebounceTime = millis();
             twr.ledToggle();
         }
@@ -1232,8 +1235,8 @@ void demoGPS(uint8_t menuSelect)
 
     } while ( btnPressed != LongPress );
 
-    strip.clear();
-    strip.show();
+    // strip.clear();
+    // strip.show();
 }
 
 void demoSDCard(uint8_t menuSelect)
@@ -1417,7 +1420,10 @@ uint32_t demoFreqSetting(uint8_t menuSelect,
         } while (u8g2.nextPage());
 
     } while ( btnPressed != ShortPress );
-
+    if (value < 446000000)
+        value = 446000000;
+    else if (value > 446200000)
+        value = 446200000;
     return  value ;
 }
 
