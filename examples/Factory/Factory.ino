@@ -1022,8 +1022,8 @@ void demoAlarm(uint8_t menuSelect )
     twr.routingMicrophoneChannel(TWRClass::TWR_MIC_TO_ESP);
     radio.transmit();
 
-    strip.setPixelColor(0, strip.Color(0, 255, 0));
-    strip.show();
+    // strip.setPixelColor(0, strip.Color(0, 255, 0));
+    // strip.show();
 
     do {
         value   = readRotary(value, 100, 2000, 100);
