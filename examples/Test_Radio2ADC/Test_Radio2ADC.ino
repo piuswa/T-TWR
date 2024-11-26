@@ -41,5 +41,5 @@ void loop(){
         int AN_In1 = analogRead(ADC1_CHANNEL);
         Serial.println(AN_In1);
     }
-    delay(250);
+    delay(1);
 }
