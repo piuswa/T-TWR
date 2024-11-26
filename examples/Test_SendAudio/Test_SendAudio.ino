@@ -51,19 +51,7 @@ void playScale(uint8_t pin, uint8_t channel)
     uint8_t octave = 4;
     ledcAttachPin(pin, channel);
     ledcWriteNote(channel, NOTE_C, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_D, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_E, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_F, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_G, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_A, octave);
-    delay(500);
-    ledcWriteNote(channel, NOTE_B, octave);
-    delay(500);
+    delay(1000);
     ledcDetachPin(pin);
 }
 
