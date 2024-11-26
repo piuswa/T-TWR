@@ -38,9 +38,8 @@ void setup(){
 void loop(){
     int RCV_In = analogRead(RCV_CHANNEL);
     if (RCV_In < 1000){
-        Serial.println("Radio is receiving:");
+        int AN_In1 = analogRead(ADC1_CHANNEL);
+        Serial.println(AN_In1);
     }
-    int AN_In1 = analogRead(ADC1_CHANNEL);
-    Serial.println(AN_In1);
     delay(250);
 }
