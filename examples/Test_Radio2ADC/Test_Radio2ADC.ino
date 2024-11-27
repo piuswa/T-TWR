@@ -1,4 +1,10 @@
 #include "LilyGo_TWR.h"
+#include <Arduino.h>
+#include <U8g2lib.h>
+#include <Wire.h>
+
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+
 int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
 void setup(){
@@ -33,6 +39,19 @@ void setup(){
     radio.setRxFreq(446200000);
     analogSetPinAttenuation(ADC1_CHANNEL, ADC_11db);
     twr.enablePowerOff(true);
+    // Setup for OLED
+    uint8_t addr = twr.getOLEDAddress();
+    while (addr == 0xFF) {
+        Serial.println("OLED is not detected, please confirm whether OLED is installed normally.");
+        delay(1000);
+    }
+    u8g2.setI2CAddress(addr << 1);
+    u8g2.begin();
+    u8g2.setFontMode(0);               // write solid glyphs
+    u8g2.setFont(u8g2_font_cu12_hr);   // choose a suitable h font
+    u8g2.setCursor(0,20);              // set write position
+    u8g2.print("Reciever");              // use extra spaces here
+    u8g2.sendBuffer();                 // transfer internal memory to the display
 }
 
 void loop(){
