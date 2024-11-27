@@ -14,7 +14,7 @@ void setup(){
     Serial.begin(115200);
 
     twr.begin();
-     if (twr.getVersion() == TWRClass::TWR_REV2V1) {
+    if (twr.getVersion() == TWRClass::TWR_REV2V1) {
         Serial.println("Detection using TWR Rev2.1");
 
         // Initialize SA868
