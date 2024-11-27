@@ -3,3 +3,4 @@
 test
 tools
 *.csv
+/**/*.csv
