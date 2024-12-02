@@ -3,6 +3,7 @@ import csv
 import matplotlib.pyplot as plt
 from datetime import datetime
 from scipy.signal import stft
+import numpy as np
 
 # Initialize the serial connection
 ser = serial.Serial(
