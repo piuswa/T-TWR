@@ -5,6 +5,11 @@ from datetime import datetime
 from scipy.signal import stft
 import numpy as np
 
+# Assuming timestamps are in a format like 'YYYY-MM-DD HH:MM:SS'
+def convert_to_datetime(timestamp_str):
+    return datetime.strptime(timestamp_str, '%H:%M:%S.%f')
+
+
 # Initialize the serial connection
 ser = serial.Serial(
     port='COM12',  # Update with your COM port
@@ -59,8 +64,12 @@ finally:
 
     # Generate the final plot
     if timestamps and values:
+        # Convert timestamp strings to datetime objects
+        timestamps = [convert_to_datetime(ts) for ts in timestamps]
+        length_of_signal = (timestamps[-1] - timestamps[0]).total_seconds()
+        print("Length of signal: ", length_of_signal)
         sample_rate = 1000  # 1 kHz from delay(1) in Arduino code
-        symbol_length = 0.25 # 250 ms per symbol
+        symbol_length = 0.5 # 250 ms per symbol no idea why this needs to be 0.5 instead of 0.25
         nperseg = int(sample_rate * symbol_length)  # Number of samples per segment
         frequencies, times, Zxx = stft(values, fs=sample_rate, nperseg=nperseg)
         # decode the received data from the serial port into 0 and 1
@@ -83,13 +92,9 @@ finally:
         print("frequencies: ", frequencies.shape)
         print("times: ", times.shape)
         print("Decoded bits: ", bits)
-        # Plot the spectrogram
-        plt.figure(figsize=(10, 6))
-        plt.pcolormesh(times, frequencies, np.abs(Zxx), shading='auto')
-        plt.title('Spectrogram of the signal')
-        plt.ylabel('Frequency [Hz]')
-        plt.xlabel('Time [sec]')
-        plt.colorbar(label='Intensity')
-        plt.show()
+        print("Decoded bits cropped: ", bits[0:-2])
+        print("length of values: ", len(values))
+        print("first timestamp: ", timestamps[0])
+        print("last timestamp: ", timestamps[-1])
     else:
-        print("No data to plot.")
+        print("No data to decode.")
