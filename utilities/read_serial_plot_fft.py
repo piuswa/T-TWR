@@ -59,12 +59,30 @@ finally:
 
     # Generate the final plot
     if timestamps and values:
-        sample_rate = 1/1000  # 1 kHz from delay(1) in Arduino code
-        frequencies, times, Zxx = stft(values, fs=sample_rate, nperseg=1024)
+        sample_rate = 1000  # 1 kHz from delay(1) in Arduino code
+        symbol_length = 0.25 # 250 ms per symbol
+        nperseg = int(sample_rate * symbol_length)  # Number of samples per segment
+        frequencies, times, Zxx = stft(values, fs=sample_rate, nperseg=nperseg)
+        # decode the received data from the serial port into 0 and 1
+        freq0 = 100
+        freq1 = 200
+        bits = []
+        idx_freq0 = np.argmin(np.abs(frequencies - freq0))
+        idx_freq1 = np.argmin(np.abs(frequencies - freq1))
 
+        for i in range(Zxx.shape[1]):
+            # Check the magnitude of the target frequencies in each segment
+            if np.abs(Zxx[idx_freq0, i]) > np.abs(Zxx[idx_freq1, i]):
+                bits.append(0)
+            else:
+                bits.append(1)
+
+
+        # Print the shapes of the arrays
         print("Zxx: ", Zxx.shape)
         print("frequencies: ", frequencies.shape)
         print("times: ", times.shape)
+        print("Decoded bits: ", bits)
         # Plot the spectrogram
         plt.figure(figsize=(10, 6))
         plt.pcolormesh(times, frequencies, np.abs(Zxx), shading='auto')
