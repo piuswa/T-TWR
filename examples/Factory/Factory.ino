@@ -585,7 +585,10 @@ void setup()
 
     // Create a rotary encoder processing task
     xTaskCreate(rotaryTask, "rotary", 10 * 1024, NULL, 10, &rotaryHandler);
-
+    radio.setRxFreq(446200000);
+    radio.setTxFreq(446200000);
+    radio.setRxCXCSS(0);
+    radio.setTxCXCSS(0);
 }
 
 

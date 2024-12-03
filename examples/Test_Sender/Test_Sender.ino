@@ -145,6 +145,10 @@ void setup()
     u8g2.setCursor(0,20);              // set write position
     u8g2.print("Sender");              // use extra spaces here
     u8g2.sendBuffer();                 // transfer internal memory to the display
+    radio.setRxFreq(446200000);
+    radio.setTxFreq(446200000);
+    radio.setRxCXCSS(0);
+    radio.setTxCXCSS(0);
 }
 
 void loop()

@@ -36,7 +36,6 @@ void setup(){
     }
 
     Serial.println(rlst ? "Radio initialization succeeded" : "Radio initialization failed");
-    radio.setRxFreq(446200000);
     analogSetPinAttenuation(ADC1_CHANNEL, ADC_11db);
     twr.enablePowerOff(true);
     // Setup for OLED
@@ -52,6 +51,10 @@ void setup(){
     u8g2.setCursor(0,20);              // set write position
     u8g2.print("Reciever");              // use extra spaces here
     u8g2.sendBuffer();                 // transfer internal memory to the display
+    radio.setRxFreq(446200000);
+    radio.setTxFreq(446200000);
+    radio.setRxCXCSS(0);
+    radio.setTxCXCSS(0);
 }
 
 void loop(){
