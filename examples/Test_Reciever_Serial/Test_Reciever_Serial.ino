@@ -11,6 +11,7 @@ int array_size = 16384;
 int i = 0;
 int** recieved;
 bool recieving = false;
+
 void setup(){
     bool rlst = false;
 
@@ -92,5 +93,5 @@ void loop(){
         //Serial.println("End of transmission, Max i:");
         //Serial.println(max_i);
     }
-    //delay(1);
+    //delay(2);
 }
