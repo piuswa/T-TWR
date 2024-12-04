@@ -68,8 +68,8 @@ finally:
         timestamps = [convert_to_datetime(ts) for ts in timestamps]
         length_of_signal = (timestamps[-1] - timestamps[0]).total_seconds()
         print("Length of signal: ", length_of_signal)
-        sample_rate = (len(values))/2  # 1 kHz from delay(1) in Arduino code
-        nperseg = int((len(values))/4)  # Number of samples per segment
+        sample_rate = 1000 #(len(values))/2  # 1 kHz from delay(1) in Arduino code
+        nperseg = 500 #int((len(values))/4)  # Number of samples per segment
         frequencies, times, Zxx = stft(values, fs=sample_rate, nperseg=nperseg)
         # decode the received data from the serial port into 0 and 1
         freq0 = 100

@@ -93,5 +93,5 @@ void loop(){
         //Serial.println("End of transmission, Max i:");
         //Serial.println(max_i);
     }
-    //delay(2);
+    delay(1);
 }
