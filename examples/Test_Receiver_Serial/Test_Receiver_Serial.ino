@@ -9,7 +9,7 @@ int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
 int array_size = 16384;
 int i = 0;
-int** recieved;
+int* recieved;
 bool recieving = false;
 
 void setup(){
@@ -56,7 +56,7 @@ void setup(){
     u8g2.setCursor(0,20);              // set write position
     u8g2.print("Reciever");              // use extra spaces here
     u8g2.sendBuffer();                 // transfer internal memory to the display
-    recieved = new int*[array_size];
+    recieved = new int[array_size];
     radio.setRxFreq(446200000);
     radio.setTxFreq(446200000);
     radio.setRxCXCSS(0);
@@ -69,7 +69,7 @@ void loop(){
         int AN_In1 = analogRead(ADC1_CHANNEL);
         //Serial.println(i);
         //Serial.println(AN_In1);
-        recieved[i] = new int(AN_In1);
+        recieved[i] = AN_In1;
         //Serial.println(*(recieved[i]));
         i++;
         recieving = true;
@@ -77,17 +77,14 @@ void loop(){
     if (recieving && RCV_In > 1000){
         int max_i = i;
         while(i < array_size){
-            recieved[i] = new int(0);
+            recieved[i] = 0;
             i++;
         }
         for (int j = 0; j < max_i; j++){
-            Serial.println(*recieved[j]);
-        }
-        for (int j = 0; j < array_size; j++){
-            delete recieved[j];
+            Serial.println(recieved[j]);
         }
         delete[] recieved;
-        recieved = new int*[array_size];
+        recieved = new int[array_size];
         i = 0;
         recieving = false;
         //Serial.println("End of transmission, Max i:");
