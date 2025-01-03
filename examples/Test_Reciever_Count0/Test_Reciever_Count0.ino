@@ -15,6 +15,24 @@ int running_avg = 700;
 bool above_avg = true;
 bool old_above_avg = true;
 int count_for_avg = 0;
+unsigned long start_time; 
+bool started_time = false; 
+
+const int buffer_size = 10;
+int signal_buffer[buffer_size];
+int buffer_index = 0;
+
+void updateRunningAverage(int new_value) {
+    signal_buffer[buffer_index] = new_value;
+    buffer_index = (buffer_index + 1) % buffer_size;
+
+    running_avg = 0;
+    for (int i = 0; i < buffer_size; i++) {
+        running_avg += signal_buffer[i];
+    }
+    running_avg /= buffer_size;
+}
+
 
 void setup(){
     bool rlst = false;
@@ -69,8 +87,13 @@ void loop(){
     int RCV_In = analogRead(RCV_CHANNEL);
     // check if we are recieving
     if (RCV_In < 1000){
+        if (!started_time) {
+            started_time = true; 
+            start_time = millis(); 
+        }
         int AN_In1 = analogRead(ADC1_CHANNEL);
         running_avg = (int) (0.8*(double)running_avg + 0.2*(double)AN_In1);
+        //updateRunningAverage(AN_In1); 
         if (AN_In1 > running_avg){
             old_above_avg = above_avg;
             above_avg = true;
@@ -85,8 +108,8 @@ void loop(){
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        if (i == window_size - 1){
-            if (zeros < 350) {
+        if (250 == millis() - start_time){
+            if (zeros < 450) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 0");
@@ -97,6 +120,7 @@ void loop(){
                 Serial.println("This is a 1");
             }
             zeros = 0;
+            started_time = false; 
             i = 0;
             // count_for_avg++;
         }

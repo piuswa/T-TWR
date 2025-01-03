@@ -41,6 +41,10 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
         case AceButton::kEventPressed:
             radio.transmit();
             playMessage(ESP2SA868_MIC, 0, "00110101");
+            // playMessage(ESP2SA868_MIC, 0, "11111111");
+            //playMessage(ESP2SA868_MIC, 0, "00000000");
+            //playMessage(ESP2SA868_MIC, 0, "10101010");
+            //playMessage(ESP2SA868_MIC, 0, "11001100");
             radio.receive();
             break;
         case AceButton::kEventReleased:
@@ -52,14 +56,18 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
     }
 }
 
+
 void playMessage(uint8_t pin, uint8_t channel, String message)
 {
     ledcAttachPin(pin, channel);
+    // add here that we send some higher frequency 
+    ledcWriteTone(channel, 1700);
+    delay(1000);
     for (uint8_t i = 0; i < message.length(); i++) {
         if (message[i] == '0') {
-            ledcWriteTone(channel, 100);
+            ledcWriteTone(channel, 600);
         } else {
-            ledcWriteTone(channel, 300);
+            ledcWriteTone(channel, 1200);
         }
         delay(250);
     }
