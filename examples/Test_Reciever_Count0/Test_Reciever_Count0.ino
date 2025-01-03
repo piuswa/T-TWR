@@ -10,7 +10,7 @@ int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
 int i = 0;
 int zeros = 0;
-int window_size = 250;
+int window_size = 2000;
 int running_avg = 700;
 bool above_avg = true;
 bool old_above_avg = true;
@@ -86,7 +86,7 @@ void loop(){
             zeros++;
         }
         if (i == window_size - 1){
-            if (zeros < 180) {
+            if (zeros < 350) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 0");
@@ -108,5 +108,5 @@ void loop(){
         // }
     }
     // so that we have a smapling rate of 1000 Hz
-    delay(1);
+    //delay(1);
 }

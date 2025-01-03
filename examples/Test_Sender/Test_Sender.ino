@@ -59,7 +59,7 @@ void playMessage(uint8_t pin, uint8_t channel, String message)
         if (message[i] == '0') {
             ledcWriteTone(channel, 100);
         } else {
-            ledcWriteTone(channel, 200);
+            ledcWriteTone(channel, 300);
         }
         delay(250);
     }
