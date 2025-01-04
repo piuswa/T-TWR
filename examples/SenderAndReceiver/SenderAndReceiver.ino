@@ -80,11 +80,8 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
         switch (eventType) {
         case AceButton::kEventPressed:
             radio.transmit();
+            // needs to be done with serial input 
             playMessage(ESP2SA868_MIC, 0, "00110101");
-            // playMessage(ESP2SA868_MIC, 0, "11111111");
-            //playMessage(ESP2SA868_MIC, 0, "00000000");
-            //playMessage(ESP2SA868_MIC, 0, "10101010");
-            //playMessage(ESP2SA868_MIC, 0, "11001100");
             radio.receive();
             break;
         case AceButton::kEventReleased:
@@ -259,15 +256,7 @@ void loop() {
             zeros = 0;
             started_time = false; 
             i = 0;
-            // count_for_avg++;
         }
         i++;
-        // if (count_for_avg == 30){
-        //     Serial.print("Running average: ");
-        //     Serial.println(running_avg);
-        //     count_for_avg = 0;
-        // }
     }
-    // so that we have a smapling rate of 1000 Hz
-    //delay(1);
 }
