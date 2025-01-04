@@ -169,16 +169,12 @@ void setup()
 
 void loop() {
     if (Serial.available()) {
-        // Read the input string from the serial monitor
         String userInput = Serial.readStringUntil('\n');
-        userInput.trim(); // Remove leading/trailing whitespace or newlines
-
-        // Validate input (optional)
+        userInput.trim(); 
         if (isValidInput(userInput)) {
             Serial.print("Sending: ");
             Serial.println(userInput);
 
-            // Transmit the input
             radio.transmit();
             playMessage(ESP2SA868_MIC, 0, userInput);
             radio.receive();
