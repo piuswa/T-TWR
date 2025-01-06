@@ -42,9 +42,9 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
             radio.transmit();
             playMessage(ESP2SA868_MIC, 0, "00110101");
             // playMessage(ESP2SA868_MIC, 0, "11111111");
-            //playMessage(ESP2SA868_MIC, 0, "00000000");
-            //playMessage(ESP2SA868_MIC, 0, "10101010");
-            //playMessage(ESP2SA868_MIC, 0, "11001100");
+            // playMessage(ESP2SA868_MIC, 0, "00000000");
+            // playMessage(ESP2SA868_MIC, 0, "10101010");
+            // playMessage(ESP2SA868_MIC, 0, "11001100");
             radio.receive();
             break;
         case AceButton::kEventReleased:
@@ -61,8 +61,8 @@ void playMessage(uint8_t pin, uint8_t channel, String message)
 {
     ledcAttachPin(pin, channel);
     // add here that we send some higher frequency 
-    ledcWriteTone(channel, 1700);
-    delay(1000);
+    // ledcWriteTone(channel, 1700);
+   //  delay(1000);
     for (uint8_t i = 0; i < message.length(); i++) {
         if (message[i] == '0') {
             ledcWriteTone(channel, 600);
@@ -71,7 +71,15 @@ void playMessage(uint8_t pin, uint8_t channel, String message)
         }
         delay(250);
     }
-    ledcDetachPin(pin);
+    // ledcDetachPin(pin);
+    ledcWriteTone(channel, 0); 
+}
+
+bool isValidInput(String input) {
+    for (char c : input) {
+        if (c != '0' && c != '1') return false;
+    }
+    return true;
 }
 
 
@@ -159,11 +167,22 @@ void setup()
     radio.setTxCXCSS(0);
 }
 
-void loop()
-{
-    for (uint8_t i = 0; i < COUNT(buttonPins); i++) {
-        buttons[i].check();
+void loop() {
+    if (Serial.available()) {
+        String userInput = Serial.readStringUntil('\n');
+        userInput.trim(); 
+        if (isValidInput(userInput)) {
+            Serial.print("Sending: ");
+            Serial.println(userInput);
+
+            radio.transmit();
+            playMessage(ESP2SA868_MIC, 0, userInput);
+            radio.receive();
+        } else {
+            Serial.println("Invalid input! Please enter a binary string (e.g., 00110101).");
+        }
     }
 }
+
 
 

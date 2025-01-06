@@ -41,7 +41,7 @@ int signal_buffer[buffer_size];
 int buffer_index = 0;
 
 AceButton button(ENCODER_OK_PIN);
-String fixedMessage = "00110101";
+// String fixedMessage = "00110101";
 bool sending = false; // Sending state flag
 
 void updateRunningAverage(int new_value) {
@@ -58,7 +58,7 @@ void updateRunningAverage(int new_value) {
 // Function to send a fixed message
 void playMessage(uint8_t pin, uint8_t channel, String message) {
     ledcAttachPin(pin, channel);
-    ledcWriteTone(channel, 1700); // Optional sync signal
+    // ledcWriteTone(channel, 1700); // Optional sync signal
     delay(1000);
 
     for (uint8_t i = 0; i < message.length(); i++) {
@@ -81,7 +81,7 @@ void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
         case AceButton::kEventPressed:
             radio.transmit();
             // needs to be done with serial input 
-            playMessage(ESP2SA868_MIC, 0, "00110101");
+            // playMessage(ESP2SA868_MIC, 0, "00110101");
             radio.receive();
             break;
         case AceButton::kEventReleased:
