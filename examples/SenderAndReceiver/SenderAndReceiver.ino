@@ -48,7 +48,7 @@ bool sending = false; // Sending state flag
 void playMessage(uint8_t pin, uint8_t channel, String message) {
     ledcAttachPin(pin, channel);
     // ledcWriteTone(channel, 1700); // Optional sync signal
-    delay(1000);
+    // delay(1000);
 
     for (uint8_t i = 0; i < message.length(); i++) {
         if (message[i] == '0') {
@@ -61,61 +61,6 @@ void playMessage(uint8_t pin, uint8_t channel, String message) {
     ledcWriteTone(channel, 0);
     ledcDetachPin(pin);
     Serial.println("Message sent.");
-}
-
-void handleEvent(AceButton *button, uint8_t eventType, uint8_t buttonState){
-    uint8_t id = button->getId();
-    if (id == 1){
-        switch (eventType) {
-        case AceButton::kEventPressed:
-            radio.transmit();
-            // needs to be done with serial input 
-            // playMessage(ESP2SA868_MIC, 0, "00110101");
-            radio.receive();
-            break;
-        case AceButton::kEventReleased:
-            radio.receive();
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-
-// Function to handle receiving logic
-void receiveMessage() {
-    int RCV_In = analogRead(RCV_CHANNEL);
-
-    if (RCV_In < 1000) {
-        if (!started_time) {
-            started_time = true;
-            start_time = millis();
-        }
-
-        int AN_In1 = analogRead(ADC1_CHANNEL);
-        running_avg = (int)(0.8 * (double)running_avg + 0.2 * (double)AN_In1);
-
-        old_above_avg = above_avg;
-        above_avg = (AN_In1 > running_avg);
-
-        if (old_above_avg && !above_avg) {
-            zeros++;
-        }
-        if (!old_above_avg && above_avg) {
-            zeros++;
-        }
-
-        if (millis() - start_time >= 250) {
-            if (zeros < 450) {
-                Serial.println("Received bit: 0");
-            } else {
-                Serial.println("Received bit: 1");
-            }
-            zeros = 0;
-            started_time = false;
-        }
-    }
 }
 
 void setup()
@@ -162,18 +107,6 @@ void setup()
             delay(1000);
         }
     }
-
-    // Initialize the buttons
-    for (uint8_t i = 0; i < COUNT(buttonPins); i++) {
-        pinMode(buttonPins[i], INPUT_PULLUP);
-        buttons[i].init(buttonPins[i], HIGH, i);
-    }
-    ButtonConfig *buttonConfig = ButtonConfig::getSystemButtonConfig();
-    buttonConfig->setEventHandler(handleEvent);
-    buttonConfig->setFeature(ButtonConfig::kFeatureClick);
-    buttonConfig->setFeature(ButtonConfig::kFeatureDoubleClick);
-    buttonConfig->setFeature(ButtonConfig::kFeatureLongPress);
-    buttonConfig->setFeature(ButtonConfig::kFeatureRepeatPress);
 
     //* Microphone will be routed to ESP ADC IO15 and the SA868 audio input will be routed to ESP IO18
     twr.routingMicrophoneChannel(TWRClass::TWR_MIC_TO_ESP);
