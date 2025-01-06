@@ -29,7 +29,6 @@ enum Button {
 int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
 int zeros = 0;
-int i = 0; 
 int running_avg = 700;
 bool above_avg = true;
 bool old_above_avg = true;
@@ -44,16 +43,6 @@ AceButton button(ENCODER_OK_PIN);
 // String fixedMessage = "00110101";
 bool sending = false; // Sending state flag
 
-void updateRunningAverage(int new_value) {
-    signal_buffer[buffer_index] = new_value;
-    buffer_index = (buffer_index + 1) % buffer_size;
-
-    running_avg = 0;
-    for (int i = 0; i < buffer_size; i++) {
-        running_avg += signal_buffer[i];
-    }
-    running_avg /= buffer_size;
-}
 
 // Function to send a fixed message
 void playMessage(uint8_t pin, uint8_t channel, String message) {
@@ -212,14 +201,31 @@ void setup()
     radio.setTxCXCSS(0);
 }
 
+bool isValidInput(String input) {
+    for (char c : input) {
+        if (c != '0' && c != '1') return false;
+    }
+    return true;
+}
+
 // Main loop
 void loop() {
-    for (uint8_t i = 0; i < COUNT(buttonPins); i++) {
-        buttons[i].check();
+    if (Serial.available()) {
+        String userInput = Serial.readStringUntil('\n');
+        userInput.trim(); 
+        if (isValidInput(userInput)) {
+            Serial.print("Sending: ");
+            Serial.println(userInput);
+
+            radio.transmit();
+            playMessage(ESP2SA868_MIC, 0, userInput);
+            radio.receive();
+        } else {
+            Serial.println("Invalid input! Please enter a binary string (e.g., 00110101).");
+        }
     }
 
     int RCV_In = analogRead(RCV_CHANNEL);
-    // check if we are recieving
     if (RCV_In < 1000){
         if (!started_time) {
             started_time = true; 
@@ -227,7 +233,6 @@ void loop() {
         }
         int AN_In1 = analogRead(ADC1_CHANNEL);
         running_avg = (int) (0.8*(double)running_avg + 0.2*(double)AN_In1);
-        //updateRunningAverage(AN_In1); 
         if (AN_In1 > running_avg){
             old_above_avg = above_avg;
             above_avg = true;
@@ -242,7 +247,7 @@ void loop() {
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        if (250 == millis() - start_time){
+        if (250 <= millis() - start_time){
             if (zeros < 450) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
@@ -255,16 +260,6 @@ void loop() {
             }
             zeros = 0;
             started_time = false; 
-            i = 0;
-            // count_for_avg++;
         }
-        i++;
-        // if (count_for_avg == 30){
-        //     Serial.print("Running average: ");
-        //     Serial.println(running_avg);
-        //     count_for_avg = 0;
-        // }
     }
-    // so that we have a smapling rate of 1000 Hz
-    //delay(1);
 }
