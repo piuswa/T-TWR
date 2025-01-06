@@ -180,7 +180,7 @@ void loop() {
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        if (250 <= millis() - start_time){
+        if (250 == millis() - start_time){
             if (zeros < 450) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
@@ -194,5 +194,9 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
+    }
+    if (350 == millis() - start_time){
+        started_time = false;
+        zeros = 0;
     }
 }
