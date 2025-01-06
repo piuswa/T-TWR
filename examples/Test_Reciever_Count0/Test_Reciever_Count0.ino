@@ -8,9 +8,9 @@ U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
 int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
-int i = 0;
+// int i = 0;
 int zeros = 0;
-int window_size = 2000;
+// int window_size = 2000;
 int running_avg = 700;
 bool above_avg = true;
 bool old_above_avg = true;
@@ -108,7 +108,7 @@ void loop(){
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        if (250 == millis() - start_time){
+        if (250 <= millis() - start_time){
             if (zeros < 450) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
@@ -121,10 +121,10 @@ void loop(){
             }
             zeros = 0;
             started_time = false; 
-            i = 0;
+            // i = 0;
             // count_for_avg++;
         }
-        i++;
+        // i++;
         // if (count_for_avg == 30){
         //     Serial.print("Running average: ");
         //     Serial.println(running_avg);
