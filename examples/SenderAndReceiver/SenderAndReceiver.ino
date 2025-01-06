@@ -256,7 +256,15 @@ void loop() {
             zeros = 0;
             started_time = false; 
             i = 0;
+            // count_for_avg++;
         }
         i++;
+        // if (count_for_avg == 30){
+        //     Serial.print("Running average: ");
+        //     Serial.println(running_avg);
+        //     count_for_avg = 0;
+        // }
     }
+    // so that we have a smapling rate of 1000 Hz
+    //delay(1);
 }
