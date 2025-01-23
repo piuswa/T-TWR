@@ -155,7 +155,11 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
 bool syncPatternDetected(int start_value) {
     int pattern[8] = {1, 0, 1, 0, 1, 0, 1, 0}; // Sync pattern: 10101010
     for (int i = start_value; i < 8 + start_value; i++) {
-        if (received_msg[i] != pattern[i]) {
+        if (received_msg[i] != pattern[i-start_value]) {
+            Serial.print("Comparing: ");
+            Serial.print(received_msg[i]);
+            Serial.print(" with ");
+            Serial.println(pattern[i]);
             return false;
         }
     }
