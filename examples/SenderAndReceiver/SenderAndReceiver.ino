@@ -35,6 +35,9 @@ bool old_above_avg = true;
 unsigned long start_time = 0;
 bool started_time = false;
 
+bool * received_msg = new bool[2056]; 
+int current_received = 0; 
+
 const int buffer_size = 10;
 int signal_buffer[buffer_size];
 int buffer_index = 0;
@@ -45,13 +48,13 @@ bool sending = false; // Sending state flag
 
 
 // Function to send a fixed message
-void playMessage(uint8_t pin, uint8_t channel, String message) {
+void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcAttachPin(pin, channel);
     // ledcWriteTone(channel, 1700); // Optional sync signal
     // delay(1000);
 
-    for (uint8_t i = 0; i < message.length(); i++) {
-        if (message[i] == '0') {
+    for (uint8_t i = 0; i < size; i++) {
+        if (message[i] == 0) {
             ledcWriteTone(channel, 600);
         } else {
             ledcWriteTone(channel, 1200);
@@ -134,28 +137,74 @@ void setup()
     radio.setTxCXCSS(0);
 }
 
-bool isValidInput(String input) {
-    for (char c : input) {
-        if (c != '0' && c != '1') return false;
+
+bool* convertStringToBool(String userInput) {
+    userInput.trim(); // Remove leading/trailing whitespace
+
+    int stringLength = userInput.length();
+    int totalBits = (stringLength * 8) + 8; // Include 8 bits for the length
+
+    // Dynamically allocate the boolean array
+    bool* boolArray = new bool[totalBits];
+
+    // Store the length in the first 8 bits
+    for (int bit = 7; bit >= 0; bit--) {
+        boolArray[7 - bit] = (stringLength & (1 << bit)) != 0;
     }
-    return true;
+
+    // Iterate over each character in the string
+    for (int i = 0; i < stringLength; i++) {
+        char c = userInput[i]; // Get the character
+
+        // Convert the character to 8 bits and store them after the length bits
+        for (int bit = 7; bit >= 0; bit--) {
+            boolArray[8 + i * 8 + (7 - bit)] = (c & (1 << bit)) != 0;
+        }
+    }
+
+    return boolArray;
 }
+
+String decodeMessage(const bool* boolArray) {
+    // Decode the length from the first 8 bits
+    int length = 0;
+    for (int i = 0; i < 8; i++) {
+        if (boolArray[i]) {
+            length |= (1 << (7 - i));
+        }
+    }
+
+    // Create a string to store the decoded message
+    String decodedMessage = "";
+
+    // Decode each character from the remaining bits
+    for (int i = 0; i < length; i++) {
+        char c = 0;
+        for (int bit = 0; bit < 8; bit++) {
+            if (boolArray[8 + i * 8 + bit]) {
+                c |= (1 << (7 - bit));
+            }
+        }
+        decodedMessage += c; // Append the character to the string
+    }
+
+    return decodedMessage;
+}
+
 
 // Main loop
 void loop() {
+
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
-        userInput.trim(); 
-        if (isValidInput(userInput)) {
-            Serial.print("Sending: ");
-            Serial.println(userInput);
+        //convert String to byte 
+        bool * result = convertStringToBool(userInput); 
+        Serial.print("Sending: ");
+        Serial.println(userInput);
 
-            radio.transmit();
-            playMessage(ESP2SA868_MIC, 0, userInput);
-            radio.receive();
-        } else {
-            Serial.println("Invalid input! Please enter a binary string (e.g., 00110101).");
-        }
+        radio.transmit();
+        playMessage(ESP2SA868_MIC, 0, result, userInput.length()*8+8);
+        radio.receive();
     }
 
     int RCV_In = analogRead(RCV_CHANNEL);
@@ -180,23 +229,28 @@ void loop() {
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        if (250 == millis() - start_time){
+        if (250 <= millis() - start_time){
             if (zeros < 450) {
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 0");
+                received_msg[current_received] = 0;
+                current_received++;
             }
             else{
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 1");
+                received_msg[current_received] = 1;
+                current_received++;
             }
             zeros = 0;
             started_time = false; 
         }
-    }
-    if (350 == millis() - start_time){
-        started_time = false;
-        zeros = 0;
+    } else if (current_received != 0) {
+        String decoded_msg = decodeMessage(received_msg);
+        Serial.print("Decoded Message: ");
+        Serial.println(decoded_msg); 
+        current_received = 0;
     }
 }
