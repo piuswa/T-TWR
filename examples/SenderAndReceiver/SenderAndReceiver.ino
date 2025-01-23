@@ -121,13 +121,21 @@ void setup()
     received_msg = new bool[2056]; // Create an array to store the received message
 }
 
-// Function to send a message
 void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcAttachPin(pin, channel);
-    // ledcWriteTone(channel, 1700); // Optional sync signal
-    // delay(1000);
 
-    for (uint8_t i = 0; i < size; i++) {
+    // Send a synchronization sequence (e.g., 10101010)
+    for (int i = 0; i < 8; i++) {
+        if (i % 2 == 0) {
+            ledcWriteTone(channel, 1200); // '1'
+        } else {
+            ledcWriteTone(channel, 600);  // '0'
+        }
+        delay(250); // Bit duration
+    }
+
+    // Send the actual message
+    for (int i = 0; i < size; i++) {
         if (message[i] == 0) {
             ledcWriteTone(channel, 600);
         } else {
@@ -135,9 +143,37 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
         }
         delay(250);
     }
+
     ledcWriteTone(channel, 0);
     ledcDetachPin(pin);
     Serial.println("Message sent.");
+}
+
+bool syncPatternDetected(int start_value) {
+    int pattern[8] = {1, 0, 1, 0, 1, 0, 1, 0}; // Sync pattern: 10101010
+    for (int i = start_value; i < 8 + start_value; i++) {
+        if (received_msg[i] != pattern[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void processReceivedMessage() {
+    // Wait for the sync pattern
+    int offset = 0;
+    for (int i = 0; i < current_received; i++){
+        if (syncPatternDetected(i)){
+            offset = i;
+            Serial.print("Pattern detected at: ");
+            Serial.println(offset);
+        }
+    }
+
+    // Process the remaining message
+    String decoded_msg = decodeMessage(received_msg + 8 + offset); // Skip the sync pattern
+    Serial.print("Decoded Message: ");
+    Serial.println(decoded_msg);
 }
 
 //Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
@@ -198,7 +234,6 @@ String decodeMessage(const bool* boolArray) {
 
 // Main loop
 void loop() {
-
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
         //convert String to byte 
@@ -255,15 +290,17 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
-    } else if (current_received >= 8) {
-        start_time_decode = millis(); 
-        String decoded_msg = decodeMessage(received_msg);
-        if (received_msg != nullptr) {
-            delete[] received_msg;  // Delete the array to avoid memory leaks
-            received_msg = new bool[2056]; // Create new array for next message
-        }
-        Serial.print("Decoded Message: ");
-        Serial.println(decoded_msg); 
+    if (current_received >= 16) {
+        processReceivedMessage(); 
+        //String decoded_msg = decodeMessage(received_msg + 8); // Skip the sync pattern
+        //Serial.print("Decoded Message: ");
+        //Serial.println(decoded_msg);
         current_received = 0;
+        if (received_msg != nullptr){
+            delete[] received_msg;
+            received_msg = new bool[2056];
+        }
+        
+    }
     }
 }
