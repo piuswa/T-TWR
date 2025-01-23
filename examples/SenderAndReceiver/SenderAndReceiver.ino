@@ -23,14 +23,14 @@ enum Button {
     Unknown
 };
 
-// Constants and Globals
+// ######################## Constants and Globals  ########################
 #define COUNT(array) (sizeof(array) / sizeof(array[0]))
 
 int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
 int zeros = 0; // counts the number of zeros for the demodulation
-int running_avg = 700;
-bool above_avg = true;
+int running_avg = 700; // for the modulation, is always updated according to fomula from Prof. Tschudin 
+bool above_avg = true; // upper threshold
 bool old_above_avg = true;
 unsigned long start_time = 0;
 bool started_time = false;
@@ -48,6 +48,8 @@ int buffer_index = 0;
 AceButton button(ENCODER_OK_PIN);
 bool sending = false; // Sending state flag
 
+
+// ######################## Setup method  ########################
 void setup()
 {
     bool rlst = false;
@@ -121,6 +123,9 @@ void setup()
     received_msg = new bool[2056]; // Create an array to store the received message
 }
 
+
+// ######################## Sending methods  ##########################
+
 void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcAttachPin(pin, channel);
 
@@ -151,6 +156,35 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcDetachPin(pin);
     Serial.println("Message sent.");
 }
+
+
+//Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
+bool* convertStringToBool(String userInput) {
+    userInput.trim();
+
+    int stringLength = userInput.length();
+    int totalBits = (stringLength * 8) + 8; 
+    bool* boolArray = new bool[totalBits];
+
+    // Store the length in the first 8 bits
+    for (int bit = 7; bit >= 0; bit--) {
+        boolArray[7 - bit] = (stringLength & (1 << bit)) != 0;
+    }
+
+    for (int i = 0; i < stringLength; i++) {
+        char c = userInput[i];
+
+        // Convert the character to 8 bits and store them after the length bits
+        for (int bit = 7; bit >= 0; bit--) {
+            boolArray[8 + i * 8 + (7 - bit)] = (c & (1 << bit)) != 0;
+        }
+    }
+
+    return boolArray;
+}
+
+// ######################## Receiving methods  ########################
+
 
 bool syncPatternDetected(int start_value) {
     int pattern[8] = {1, 0, 1, 0, 1, 0, 1, 0}; // Sync pattern: 10101010
@@ -188,31 +222,6 @@ void processReceivedMessage() {
     }
 }
 
-//Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
-bool* convertStringToBool(String userInput) {
-    userInput.trim();
-
-    int stringLength = userInput.length();
-    int totalBits = (stringLength * 8) + 8; 
-    bool* boolArray = new bool[totalBits];
-
-    // Store the length in the first 8 bits
-    for (int bit = 7; bit >= 0; bit--) {
-        boolArray[7 - bit] = (stringLength & (1 << bit)) != 0;
-    }
-
-    for (int i = 0; i < stringLength; i++) {
-        char c = userInput[i];
-
-        // Convert the character to 8 bits and store them after the length bits
-        for (int bit = 7; bit >= 0; bit--) {
-            boolArray[8 + i * 8 + (7 - bit)] = (c & (1 << bit)) != 0;
-        }
-    }
-
-    return boolArray;
-}
-
 // Decode a message from a boolean array where the first 8 bits represent the length of the message
 String decodeMessage(const bool* boolArray) {
     // Decode the length from the first 8 bits
@@ -239,7 +248,7 @@ String decodeMessage(const bool* boolArray) {
 }
 
 
-// Main loop
+// ######################## Main Loop ########################
 void loop() {
 
     // ----- SENDING ------
