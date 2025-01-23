@@ -35,7 +35,7 @@ bool old_above_avg = true;
 unsigned long start_time = 0;
 bool started_time = false;
 
-bool * received_msg = new bool[2056]; 
+bool * received_msg; 
 int current_received = 0; 
 
 const int buffer_size = 10;
@@ -115,6 +115,8 @@ void setup()
     radio.setTxFreq(446200000);
     radio.setRxCXCSS(0);
     radio.setTxCXCSS(0);
+
+    received_msg = new bool[2056]; // Create an array to store the received message
 }
 
 // Function to send a message
@@ -204,6 +206,10 @@ void loop() {
 
         radio.transmit();
         playMessage(ESP2SA868_MIC, 0, result, userInput.length()*8+8);
+        if (result != nullptr) {
+            delete[] result;  // Delete the array to avoid memory leaks
+            result = nullptr; // Set pointer to nullptr to avoid dangling pointers
+        }
         radio.receive();
     }
 
@@ -249,6 +255,10 @@ void loop() {
         }
     } else if (current_received != 0) {
         String decoded_msg = decodeMessage(received_msg);
+        if (received_msg != nullptr) {
+            delete[] received_msg;  // Delete the array to avoid memory leaks
+            received_msg = new bool[2056]; // Create new array for next message
+        }
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg); 
         current_received = 0;
