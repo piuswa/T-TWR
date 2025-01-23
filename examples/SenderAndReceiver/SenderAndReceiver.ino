@@ -124,6 +124,9 @@ void setup()
 void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcAttachPin(pin, channel);
 
+    // Send two zeros to ensure the receiver is ready
+    ledcWriteTone(channel, 600);
+    delay(500);
     // Send a synchronization sequence (e.g., 10101010)
     for (int i = 0; i < 8; i++) {
         if (i % 2 == 0) {
@@ -162,18 +165,26 @@ bool syncPatternDetected(int start_value) {
 void processReceivedMessage() {
     // Wait for the sync pattern
     int offset = 0;
+    bool pattern_detected = false;
     for (int i = 0; i < current_received; i++){
         if (syncPatternDetected(i)){
             offset = i;
             Serial.print("Pattern detected at: ");
             Serial.println(offset);
+            pattern_detected = true;
+            break;
         }
     }
 
     // Process the remaining message
-    String decoded_msg = decodeMessage(received_msg + 8 + offset); // Skip the sync pattern
-    Serial.print("Decoded Message: ");
-    Serial.println(decoded_msg);
+    if (!pattern_detected) {
+        Serial.println("Sync pattern not detected.");
+        return;
+    } else {
+        String decoded_msg = decodeMessage(&received_msg[8 + offset]); // Skip the sync pattern
+        Serial.print("Decoded Message: ");
+        Serial.println(decoded_msg);
+    }
 }
 
 //Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
@@ -290,17 +301,14 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
-    if (current_received >= 16) {
+    } else if (current_received >= 16) {
         processReceivedMessage(); 
-        //String decoded_msg = decodeMessage(received_msg + 8); // Skip the sync pattern
-        //Serial.print("Decoded Message: ");
-        //Serial.println(decoded_msg);
+        Serial.print("Current received: ");
+        Serial.println(current_received);
         current_received = 0;
         if (received_msg != nullptr){
             delete[] received_msg;
             received_msg = new bool[2056];
         }
-        
-    }
     }
 }
