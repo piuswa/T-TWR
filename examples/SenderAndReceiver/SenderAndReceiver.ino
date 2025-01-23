@@ -46,26 +46,6 @@ AceButton button(ENCODER_OK_PIN);
 // String fixedMessage = "00110101";
 bool sending = false; // Sending state flag
 
-
-// Function to send a fixed message
-void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
-    ledcAttachPin(pin, channel);
-    // ledcWriteTone(channel, 1700); // Optional sync signal
-    // delay(1000);
-
-    for (uint8_t i = 0; i < size; i++) {
-        if (message[i] == 0) {
-            ledcWriteTone(channel, 600);
-        } else {
-            ledcWriteTone(channel, 1200);
-        }
-        delay(250);
-    }
-    ledcWriteTone(channel, 0);
-    ledcDetachPin(pin);
-    Serial.println("Message sent.");
-}
-
 void setup()
 {
     bool rlst = false;
@@ -137,7 +117,26 @@ void setup()
     radio.setTxCXCSS(0);
 }
 
+// Function to send a message
+void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
+    ledcAttachPin(pin, channel);
+    // ledcWriteTone(channel, 1700); // Optional sync signal
+    // delay(1000);
 
+    for (uint8_t i = 0; i < size; i++) {
+        if (message[i] == 0) {
+            ledcWriteTone(channel, 600);
+        } else {
+            ledcWriteTone(channel, 1200);
+        }
+        delay(250);
+    }
+    ledcWriteTone(channel, 0);
+    ledcDetachPin(pin);
+    Serial.println("Message sent.");
+}
+
+//Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
 bool* convertStringToBool(String userInput) {
     userInput.trim(); // Remove leading/trailing whitespace
 
@@ -165,6 +164,7 @@ bool* convertStringToBool(String userInput) {
     return boolArray;
 }
 
+// Decode a message from a boolean array where the first 8 bits represent the length of the message
 String decodeMessage(const bool* boolArray) {
     // Decode the length from the first 8 bits
     int length = 0;
