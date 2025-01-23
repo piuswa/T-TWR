@@ -28,7 +28,7 @@ enum Button {
 
 int ADC1_CHANNEL = 1;
 int RCV_CHANNEL = 2;
-int zeros = 0;
+int zeros = 0; // counts the number of zeros for the demodulation
 int running_avg = 700;
 bool above_avg = true;
 bool old_above_avg = true;
@@ -38,6 +38,7 @@ bool started_time = false;
 bool * received_msg; 
 int current_received = 0; 
 
+// used for the decoding 
 unsigned long start_time_decode = 0; 
 
 const int buffer_size = 10;
@@ -45,7 +46,6 @@ int signal_buffer[buffer_size];
 int buffer_index = 0;
 
 AceButton button(ENCODER_OK_PIN);
-// String fixedMessage = "00110101";
 bool sending = false; // Sending state flag
 
 void setup()
@@ -155,11 +155,7 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
 bool syncPatternDetected(int start_value) {
     int pattern[8] = {1, 0, 1, 0, 1, 0, 1, 0}; // Sync pattern: 10101010
     for (int i = start_value; i < 8 + start_value; i++) {
-        if (received_msg[i] != pattern[i-start_value]) {
-            Serial.print("Comparing: ");
-            Serial.print(received_msg[i]);
-            Serial.print(" with ");
-            Serial.println(pattern[i]);
+        if (received_msg[i] != pattern[i]) {
             return false;
         }
     }
@@ -185,6 +181,7 @@ void processReceivedMessage() {
         Serial.println("Sync pattern not detected.");
         return;
     } else {
+        // todo do the error correction here 
         String decoded_msg = decodeMessage(&received_msg[8 + offset]); // Skip the sync pattern
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
@@ -193,12 +190,10 @@ void processReceivedMessage() {
 
 //Convert a string to a boolean array that represents the string in binary with the first 8 bits representing the length of the string
 bool* convertStringToBool(String userInput) {
-    userInput.trim(); // Remove leading/trailing whitespace
+    userInput.trim();
 
     int stringLength = userInput.length();
-    int totalBits = (stringLength * 8) + 8; // Include 8 bits for the length
-
-    // Dynamically allocate the boolean array
+    int totalBits = (stringLength * 8) + 8; 
     bool* boolArray = new bool[totalBits];
 
     // Store the length in the first 8 bits
@@ -206,9 +201,8 @@ bool* convertStringToBool(String userInput) {
         boolArray[7 - bit] = (stringLength & (1 << bit)) != 0;
     }
 
-    // Iterate over each character in the string
     for (int i = 0; i < stringLength; i++) {
-        char c = userInput[i]; // Get the character
+        char c = userInput[i];
 
         // Convert the character to 8 bits and store them after the length bits
         for (int bit = 7; bit >= 0; bit--) {
@@ -228,8 +222,6 @@ String decodeMessage(const bool* boolArray) {
             length |= (1 << (7 - i));
         }
     }
-
-    // Create a string to store the decoded message
     String decodedMessage = "";
 
     // Decode each character from the remaining bits
@@ -240,7 +232,7 @@ String decodeMessage(const bool* boolArray) {
                 c |= (1 << (7 - bit));
             }
         }
-        decodedMessage += c; // Append the character to the string
+        decodedMessage += c; 
     }
 
     return decodedMessage;
@@ -249,6 +241,8 @@ String decodeMessage(const bool* boolArray) {
 
 // Main loop
 void loop() {
+
+    // ----- SENDING ------
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
         //convert String to byte 
@@ -265,6 +259,7 @@ void loop() {
         radio.receive();
     }
 
+    // ----- DEMODULATION ------
     int RCV_In = analogRead(RCV_CHANNEL);
     if (RCV_In < 1000){
         if (!started_time) {
@@ -305,6 +300,7 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
+    // decoding the msg
     } else if (current_received >= 16) {
         processReceivedMessage(); 
         Serial.print("Current received: ");
