@@ -26,27 +26,24 @@ enum Button {
 // ######################## Constants and Globals  ########################
 #define COUNT(array) (sizeof(array) / sizeof(array[0]))
 
-int ADC1_CHANNEL = 1;
-int RCV_CHANNEL = 2;
+int ADC1_CHANNEL = 1; // Analog pin for reading the audio signal
+int RCV_CHANNEL = 2; // Analog pin for reading if we recieve a signal
 int zeros = 0; // counts the number of zeros for the demodulation
 int running_avg = 700; // for the modulation, is always updated according to fomula from Prof. Tschudin 
-bool above_avg = true; // upper threshold
-bool old_above_avg = true;
-unsigned long start_time = 0;
-bool started_time = false;
+bool above_avg = true; // is the read value above the running average
+bool old_above_avg = true; // is the previous value above the running average
+unsigned long start_time = 0; // used to measure the time for the demodulation
+bool started_time = false; // used to check if we started the time for the demodulation
 
-bool * received_msg; 
-int current_received = 0; 
+bool * received_msg; // Array to store the received message
+int current_received = 0; // Index of the current received bit
 
-// used for the decoding 
-unsigned long start_time_decode = 0; 
-
+// not sure if this is needed but we'll keep it for now (has to be tested)
 const int buffer_size = 10;
 int signal_buffer[buffer_size];
 int buffer_index = 0;
-
-AceButton button(ENCODER_OK_PIN);
-bool sending = false; // Sending state flag
+AceButton button(ENCODER_OK_PIN);  // Not sure if all the button stuff is still necessary (also above the globals)
+bool sending = false; // Sending state flag (don't think this is needed anymore)
 
 
 // ######################## Setup method  ########################
@@ -98,11 +95,10 @@ void setup()
     //* Microphone will be routed to ESP ADC IO15 and the SA868 audio input will be routed to ESP IO18
     twr.routingMicrophoneChannel(TWRClass::TWR_MIC_TO_ESP);
 
-    // Start transfer
-    // radio.transmit();
+    //* Enable power off function
     twr.enablePowerOff(true);
 
-    // Setup for OLED
+    //* setup the OLED and print the function of the device
     uint8_t addr = twr.getOLEDAddress();
     while (addr == 0xFF) {
         Serial.println("OLED is not detected, please confirm whether OLED is installed normally.");
@@ -110,29 +106,33 @@ void setup()
     }
     u8g2.setI2CAddress(addr << 1);
     u8g2.begin();
-    u8g2.setFontMode(0);               // write solid glyphs
-    u8g2.setFont(u8g2_font_cu12_hr);   // choose a suitable h font
-    u8g2.setCursor(0,20);              // set write position
-    u8g2.print("Sender & Receiver");              // use extra spaces here
-    u8g2.sendBuffer();                 // transfer internal memory to the display
+    u8g2.setFontMode(0);               
+    u8g2.setFont(u8g2_font_cu12_hr);
+    u8g2.setCursor(0,20);
+    u8g2.print("Sender & Receiver");
+    u8g2.sendBuffer();
+
+    //* initialize the radio so that it is always the same
     radio.setRxFreq(446200000);
     radio.setTxFreq(446200000);
     radio.setRxCXCSS(0);
     radio.setTxCXCSS(0);
 
-    received_msg = new bool[2056]; // Create an array to store the received message
+    //* Create an array to store the received message
+    received_msg = new bool[2056];
 }
 
 
 // ######################## Sending methods  ##########################
 
+// Send the given message and add synchronization bits at the beginning
 void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcAttachPin(pin, channel);
 
     // Send two zeros to ensure the receiver is ready
     ledcWriteTone(channel, 600);
     delay(500);
-    // Send a synchronization sequence (e.g., 10101010)
+    // Send a synchronization sequence (10101010)
     for (int i = 0; i < 8; i++) {
         if (i % 2 == 0) {
             ledcWriteTone(channel, 1200); // '1'
@@ -185,7 +185,7 @@ bool* convertStringToBool(String userInput) {
 
 // ######################## Receiving methods  ########################
 
-
+// check if the sync pattern is detected in the received message starting from the given index
 bool syncPatternDetected(int start_value) {
     int pattern[8] = {1, 0, 1, 0, 1, 0, 1, 0}; // Sync pattern: 10101010
     for (int i = start_value; i < 8 + start_value; i++) {
@@ -196,8 +196,9 @@ bool syncPatternDetected(int start_value) {
     return true;
 }
 
+// find the sync pattern in the received message and decode the message
 void processReceivedMessage() {
-    // Wait for the sync pattern
+    // find the sync pattern
     int offset = 0;
     bool pattern_detected = false;
     for (int i = 0; i < current_received; i++){
@@ -210,12 +211,13 @@ void processReceivedMessage() {
         }
     }
 
-    // Process the remaining message
+    // Check if the sync pattern was detected
     if (!pattern_detected) {
         Serial.println("Sync pattern not detected.");
         return;
+    // Decode the message
     } else {
-        // todo do the error correction here 
+        // TODO do the error correction here (get message from the bits with correction codes)
         String decoded_msg = decodeMessage(&received_msg[8 + offset]); // Skip the sync pattern
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
@@ -254,27 +256,33 @@ void loop() {
     // ----- SENDING ------
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
+        // TODO Add error handling for too long messages since we are restriceted to 256 characters by the 8 bit integer at the beginning of the message
         //convert String to byte 
         bool * result = convertStringToBool(userInput); 
         Serial.print("Sending: ");
         Serial.println(userInput);
-
+        // TODO add error correction here (add correction codes to the message)
+        // Send the binary message
         radio.transmit();
         playMessage(ESP2SA868_MIC, 0, result, userInput.length()*8+8);
+        // Safly delete the result array
         if (result != nullptr) {
-            delete[] result;  // Delete the array to avoid memory leaks
-            result = nullptr; // Set pointer to nullptr to avoid dangling pointers
+            delete[] result;
+            result = nullptr;
         }
         radio.receive();
     }
 
     // ----- DEMODULATION ------
+    // check if we receive a signal
     int RCV_In = analogRead(RCV_CHANNEL);
     if (RCV_In < 1000){
+        // check if we started the time for the demodulation and if not start it
         if (!started_time) {
             started_time = true; 
             start_time = millis(); 
         }
+        // read the audio signal, update the running average and check if it is above the running average
         int AN_In1 = analogRead(ADC1_CHANNEL);
         running_avg = (int) (0.8*(double)running_avg + 0.2*(double)AN_In1);
         if (AN_In1 > running_avg){
@@ -285,21 +293,24 @@ void loop() {
             old_above_avg = above_avg;
             above_avg = false;
         }
+        // check it the signal is now above or below the running average and if it was not before, then update the number of zeros
         if (old_above_avg && !above_avg){
             zeros++;
         }
         if (above_avg && !old_above_avg){
             zeros++;
         }
+        // after 250ms we have recieved a bit and check it the amount of zeros is below or above 450 which is the threshold for a 1 or 0
         if (250 <= millis() - start_time){
             if (zeros < 450) {
+                // print some debug information and store the received bit
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 0");
                 received_msg[current_received] = 0;
                 current_received++;
-            }
-            else{
+            } else {
+                // print some debug information and store the received bit
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
                 Serial.println("This is a 1");
@@ -309,11 +320,13 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
-    // decoding the msg
+    
+    // ----- DECODING ------
     } else if (current_received >= 16) {
         processReceivedMessage(); 
         Serial.print("Current received: ");
         Serial.println(current_received);
+        // Reset so we can receive a new message
         current_received = 0;
         if (received_msg != nullptr){
             delete[] received_msg;
