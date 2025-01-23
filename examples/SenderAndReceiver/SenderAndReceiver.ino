@@ -38,6 +38,8 @@ bool started_time = false;
 bool * received_msg; 
 int current_received = 0; 
 
+unsigned long start_time_decode = 0; 
+
 const int buffer_size = 10;
 int signal_buffer[buffer_size];
 int buffer_index = 0;
@@ -253,7 +255,8 @@ void loop() {
             zeros = 0;
             started_time = false; 
         }
-    } else if (current_received != 0) {
+    } else if (current_received >= 8) {
+        start_time_decode = millis(); 
         String decoded_msg = decodeMessage(received_msg);
         if (received_msg != nullptr) {
             delete[] received_msg;  // Delete the array to avoid memory leaks
