@@ -38,6 +38,9 @@ bool started_time = false; // used to check if we started the time for the demod
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
 
+bool timer_for_decode_started = false; // Timer for the decoding of the message
+unsigned long start_decode_time = 0; // Start time for the decoding of the message
+
 // not sure if this is needed but we'll keep it for now (has to be tested)
 const int buffer_size = 10;
 int signal_buffer[buffer_size];
@@ -196,6 +199,11 @@ bool syncPatternDetected(int start_value) {
     return true;
 }
 
+bool syncPatternBarkerCodeDected(int start_value) {
+    int pattern[7] = {1,1,1,-1,-1,1,-1}; // Barker code
+    //compute autocerrlation
+}
+
 // find the sync pattern in the received message and decode the message
 void processReceivedMessage() {
     // find the sync pattern
@@ -322,7 +330,12 @@ void loop() {
         }
     
     // ----- DECODING ------
-    } else if (current_received >= 16) {
+    } else if(!timer_for_decode_started) {
+        timer_for_decode_started = true;
+        start_decode_time = millis();
+    } else if (current_received >= 16 && 250 <= millis() - start_decode_time) {
+        timer_for_decode_started = false;
+        start_decode_time = 0;
         processReceivedMessage(); 
         Serial.print("Current received: ");
         Serial.println(current_received);
