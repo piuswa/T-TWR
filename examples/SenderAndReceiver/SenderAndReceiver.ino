@@ -240,7 +240,7 @@ void processReceivedMessage() {
     // Decode the message
     } else {
         // TODO do the error correction here (get message from the bits with correction codes)
-        String decoded_msg = decodeMessage(&received_msg[8 + offset]); // Skip the sync pattern
+        String decoded_msg = decodeMessage(&received_msg[7 + offset]); // Skip the sync pattern
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
     }
