@@ -285,6 +285,8 @@ void loop() {
     // check if we receive a signal
     int RCV_In = analogRead(RCV_CHANNEL);
     if (RCV_In < 1000){
+        timer_for_decode_started = false;
+        start_decode_time = 0;
         // check if we started the time for the demodulation and if not start it
         if (!started_time) {
             started_time = true; 
