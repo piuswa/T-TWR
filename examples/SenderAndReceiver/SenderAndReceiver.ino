@@ -119,7 +119,7 @@ void setup()
     radio.setTxCXCSS(0);
 
     //* Create an array to store the received message
-    received_msg = new bool[2056];
+    received_msg = new bool[2200];
 }
 
 
@@ -330,7 +330,7 @@ void loop() {
         current_received = 0;
         if (received_msg != nullptr){
             delete[] received_msg;
-            received_msg = new bool[2056];
+            received_msg = new bool[2200];
         }
     }
 }
