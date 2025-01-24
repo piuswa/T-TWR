@@ -136,8 +136,9 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     ledcWriteTone(channel, 600);
     delay(500);
     // Send a synchronization sequence (10101010)
-    for (int i = 0; i < 8; i++) {
-        if (i % 2 == 0) {
+    int pattern[7] = {1,1,1,-1,-1,1,-1}; 
+    for (int i = 0; i < 7; i++) {
+        if (pattern[i] == 1) {
             ledcWriteTone(channel, 1200); // '1'
         } else {
             ledcWriteTone(channel, 600);  // '0'
@@ -199,9 +200,22 @@ bool syncPatternDetected(int start_value) {
     return true;
 }
 
-bool syncPatternBarkerCodeDected(int start_value) {
+bool syncPatternBarkerCodeDetected(int start_value) {
     int pattern[7] = {1,1,1,-1,-1,1,-1}; // Barker code
     //compute autocerrlation
+    int sum = 0; 
+    for (int i = start_value; i < 7 + start_value; i++) {
+        if (received_msg[i] == 0) {
+            sum -= pattern[i - start_value]; 
+        } else {
+            sum += pattern[i - start_value]; 
+        }
+    }
+    if (sum >= 5) {
+        return true; 
+    } else {
+        return false; 
+    }
 }
 
 // find the sync pattern in the received message and decode the message
@@ -210,7 +224,7 @@ void processReceivedMessage() {
     int offset = 0;
     bool pattern_detected = false;
     for (int i = 0; i < current_received; i++){
-        if (syncPatternDetected(i)){
+        if (syncPatternBarkerCodeDetected(i)){
             offset = i;
             Serial.print("Pattern detected at: ");
             Serial.println(offset);
