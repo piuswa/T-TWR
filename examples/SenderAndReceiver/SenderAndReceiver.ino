@@ -301,7 +301,7 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
 }
 
 bool* fecDecodeMessage (bool* message) {
-    bool* msg_length = fecDecodeMessage(message, 8); // get packet info with length of message
+    bool* msg_length = fecDecodeMessage(message, 1); // get packet info with length of message
     // convert bit to int length
     int length = 0;
     for (int i = 0; i < 8; i++) {
@@ -314,8 +314,8 @@ bool* fecDecodeMessage (bool* message) {
         msg_length = nullptr;
     }
     // decode actual message
-    bool* decodedMessage = fecDecodeMessage(message, length+8);
-    
+    bool* decodedMessage = fecDecodeMessage(message, length+1);
+
     if (message != nullptr) {
         delete[] message;
         message = nullptr;
