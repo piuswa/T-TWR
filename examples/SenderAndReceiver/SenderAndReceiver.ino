@@ -293,6 +293,7 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
             coded = coded >> 1;
         }
     }
+    return encodedMessage;
 }
 
 bool* fecDecodeMessage (bool* message) {
