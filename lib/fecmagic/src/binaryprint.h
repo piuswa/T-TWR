@@ -26,7 +26,7 @@
 
 #include <iostream>
 #include <type_traits>
-#include <emmintrin.h>
+// #include <emmintrin.h>
 
 namespace fecmagic {
 
