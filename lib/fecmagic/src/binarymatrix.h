@@ -88,21 +88,21 @@ namespace fecmagic {
         /**
          * Creates an empty BinaryMatrix instance, filled with zeroes.
          */
-        constexpr inline explicit BinaryMatrix() {
+        inline explicit BinaryMatrix() {
             std::memset(bytes, 0, byteCount);
         }
         
         /**
          * Creates a BinaryMatrix instance by copying a byte array.
          */
-        constexpr inline explicit BinaryMatrix(std::uint8_t *b) {
+        inline explicit BinaryMatrix(std::uint8_t *b) {
             std::memcpy(bytes, b, byteCount);
         }
         
         /**
          * Creates a BinaryMatrix instance from an initializer list of bytes that are copied.
          */
-        constexpr inline BinaryMatrix(const std::initializer_list<uint8_t> &init) {
+        inline BinaryMatrix(const std::initializer_list<uint8_t> &init) {
             size_t i = 0;
             for (auto it = init.begin(); it != init.end(); it++) {
                 bytes[i++] = *it;
@@ -429,17 +429,17 @@ namespace fecmagic {
 }
 
 /** Prints a binary matrix, for debugging purposes */
-template<unsigned Rows, unsigned Cols>
-::std::ostream &operator<<(::std::ostream &os, const ::fecmagic::BinaryMatrix<Rows, Cols> &matrix) {
-    for (uint8_t i = 0; i < Rows; i++) {
-        for (uint8_t j = 0; j < Cols / 8; j++) {
-            os << ::fecmagic::BinaryPrint<uint8_t>(matrix.bytes[i * Cols / 8 + j]);
-        }
-        os << std::endl;
-    }
+// template<unsigned Rows, unsigned Cols>
+// ::std::ostream &operator<<(::std::ostream &os, const ::fecmagic::BinaryMatrix<Rows, Cols> &matrix) {
+//     for (uint8_t i = 0; i < Rows; i++) {
+//         for (uint8_t j = 0; j < Cols / 8; j++) {
+//             os << ::fecmagic::BinaryPrint<uint8_t>(matrix.bytes[i * Cols / 8 + j]);
+//         }
+//         os << std::endl;
+//     }
     
-    return os;
-}
+//     return os;
+// }
 
 #endif // BINARYMATRIX_H
 
