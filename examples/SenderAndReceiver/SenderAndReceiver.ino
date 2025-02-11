@@ -276,7 +276,7 @@ String decodeMessage(const bool* boolArray) {
 // ######################## FEC methods  ########################
 
 bool* fecEncodeMessage (bool* message, int messageLength) {
-    bool encodedMessage[messageLength*16];
+    bool* encodedMessage = new bool[messageLength*16];
     fecmagic::HammingCode c;
     // encode the message
     for (int i = 0; i < messageLength*2; i++){
@@ -293,6 +293,10 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
             coded = coded >> 1;
         }
     }
+    if (message != nullptr) {
+        delete[] message;
+        message = nullptr;
+    }
     return encodedMessage;
 }
 
@@ -305,13 +309,24 @@ bool* fecDecodeMessage (bool* message) {
             length |= (1 << (7 - i));
         }
     }
+    if (msg_length != nullptr) {
+        delete[] msg_length;
+        msg_length = nullptr;
+    }
     // decode actual message
-    return fecDecodeMessage(message, length+8);
+    bool* decodedMessage = fecDecodeMessage(message, length+8);
+    
+    if (message != nullptr) {
+        delete[] message;
+        message = nullptr;
+    }
+    return decodedMessage;
 }
 
 bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
     fecmagic::HammingCode c;
-    bool decodedMessage[messageLength*8];
+    bool* decodedMessage = new bool[messageLength*8];
+
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
         //decode 8 bits at a time in a unit8_t as least significant bits
@@ -333,6 +348,7 @@ bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
     }
     return decodedMessage;
 }
+
 // ######################## Main Loop ########################
 void loop() {
 
