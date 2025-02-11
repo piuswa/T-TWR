@@ -310,7 +310,7 @@ bool* fecDecodeMessage (bool* message) {
     Serial.println("Decoding packet info");
     bool* msg_length = fecDecodeMessage(message, 1); // get packet info with length of message
     // convert bit to int length
-     Serial.println("packet info decoded");
+    Serial.println("packet info decoded");
     int length = 0;
     for (int i = 0; i < 8; i++) {
         if (msg_length[i]) {
