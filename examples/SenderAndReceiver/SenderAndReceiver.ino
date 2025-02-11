@@ -247,6 +247,10 @@ void processReceivedMessage() {
         String decoded_msg = decodeMessage(error_corrected_msg); 
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
+        if (error_corrected_msg != nullptr) {
+            delete[] error_corrected_msg;
+            error_corrected_msg = nullptr;
+        }
     }
 }
 
@@ -322,10 +326,6 @@ bool* fecDecodeMessage (bool* message) {
     // decode actual message
     bool* decodedMessage = fecDecodeMessage(message, length+1);
     Serial.println("Decoded message");
-    if (message != nullptr) {
-        delete[] message;
-        message = nullptr;
-    }
     return decodedMessage;
 }
 
