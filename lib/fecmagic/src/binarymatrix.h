@@ -36,7 +36,7 @@
 #include <initializer_list>
 #include <iostream>
 
-#include "binaryprint.h"
+//#include "binaryprint.h"
 #include "fecmagic-global.h"
 
 namespace fecmagic {

@@ -24,7 +24,7 @@
 #ifndef BLOCKCODE_H
 #define BLOCKCODE_H
 
-#include "binaryprint.h"
+//#include "binaryprint.h"
 #include "binarymatrix.h"
 #include "bitmaskcombination.h"
 #define ROUND_8(x) ((x) + (((x) % 8) > 0 ? (8 - ((x) % 8)) : 0))
