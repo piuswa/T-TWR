@@ -275,11 +275,9 @@ String decodeMessage(const bool* boolArray) {
 
 // ######################## FEC methods  ########################
 
-bool* fecEncodeMessage (bool* message, int size) {
-    int messageLength = size;
+bool* fecEncodeMessage (bool* message, int messageLength) {
     bool encodedMessage[messageLength*16];
-    bool decodedMessage[messageLength*8];
-    HammingCode c;
+    fecmagic::HammingCode c;
     // encode the message
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
@@ -298,9 +296,42 @@ bool* fecEncodeMessage (bool* message, int size) {
 }
 
 bool* fecDecodeMessage (bool* message) {
-    
+    bool* msg_length = fecDecodeMessage(message, 8); // get packet info with length of message
+    // convert bit to int length
+    int length = 0;
+    for (int i = 0; i < 8; i++) {
+        if (msg_length[i]) {
+            length |= (1 << (7 - i));
+        }
+    }
+    // decode actual message
+    return fecDecodeMessage(message, length+8);
 }
 
+bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
+    fecmagic::HammingCode c;
+    bool decodedMessage[messageLength*8];
+    for (int i = 0; i < messageLength*2; i++){
+        uint8_t word = 0;
+        //decode 8 bits at a time in a unit8_t as least significant bits
+        for (int j = 0; j < 8; j++) {
+            word |= (encodedMessage[i*8 + j] << j);
+        }
+        // use hamming code function to decode the word
+        bool decodeSuccess;
+        uint8_t decoded = c.decode(word, decodeSuccess);
+        if (!decodeSuccess){
+            Serial.println("Error decoding did not work");
+        }
+        // cout << "decoded: " << decoded << endl;
+        // store the decoded word in the decoded message as a true false array
+        for (int j = 0; j < 4; j++){
+            decodedMessage[i*4+j] = decoded & 1;
+            decoded = decoded >> 1;
+        }
+    }
+    return decodedMessage;
+}
 // ######################## Main Loop ########################
 void loop() {
 
