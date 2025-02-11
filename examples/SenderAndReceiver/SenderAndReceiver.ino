@@ -35,7 +35,7 @@ bool above_avg = true; // is the read value above the running average
 bool old_above_avg = true; // is the previous value above the running average
 unsigned long start_time = 0; // used to measure the time for the demodulation
 bool started_time = false; // used to check if we started the time for the demodulation
-
+int rvc_msg_size = 4400; // how big is our array to recieve messages
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
 
@@ -123,7 +123,7 @@ void setup()
     radio.setTxCXCSS(0);
 
     //* Create an array to store the received message
-    received_msg = new bool[2200];
+    received_msg = new bool[rvc_msg_size];
 }
 
 
@@ -421,7 +421,7 @@ void loop() {
         current_received = 0;
         if (received_msg != nullptr){
             delete[] received_msg;
-            received_msg = new bool[2200];
+            received_msg = new bool[rvc_msg_size];
         }
     }
 }
