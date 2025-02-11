@@ -35,9 +35,11 @@ bool above_avg = true; // is the read value above the running average
 bool old_above_avg = true; // is the previous value above the running average
 unsigned long start_time = 0; // used to measure the time for the demodulation
 bool started_time = false; // used to check if we started the time for the demodulation
-int rvc_msg_size = 4400; // how big is our array to recieve messages
+int rvc_msg_size = 2200; // how big is our array to recieve messages
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
+fecmagic::HammingCode c; // for the hamming code
+
 
 bool timer_for_decode_started = false; // Timer for the decoding of the message
 unsigned long start_decode_time = 0; // Start time for the decoding of the message
@@ -277,7 +279,7 @@ String decodeMessage(const bool* boolArray) {
 
 bool* fecEncodeMessage (bool* message, int messageLength) {
     bool* encodedMessage = new bool[messageLength*16];
-    fecmagic::HammingCode c;
+    //fecmagic::HammingCode c;
     // encode the message
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
@@ -301,21 +303,25 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
 }
 
 bool* fecDecodeMessage (bool* message) {
+    Serial.println("Decoding packet info");
     bool* msg_length = fecDecodeMessage(message, 1); // get packet info with length of message
     // convert bit to int length
+     Serial.println("packet info decoded");
     int length = 0;
     for (int i = 0; i < 8; i++) {
         if (msg_length[i]) {
             length |= (1 << (7 - i));
         }
     }
+    Serial.print("Decoded length: ");
+    Serial.println(length);
     if (msg_length != nullptr) {
         delete[] msg_length;
         msg_length = nullptr;
     }
     // decode actual message
     bool* decodedMessage = fecDecodeMessage(message, length+1);
-
+    Serial.println("Decoded message");
     if (message != nullptr) {
         delete[] message;
         message = nullptr;
@@ -324,21 +330,23 @@ bool* fecDecodeMessage (bool* message) {
 }
 
 bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
-    fecmagic::HammingCode c;
     bool* decodedMessage = new bool[messageLength*8];
-
+    Serial.println("array or decodede message created");
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
         //decode 8 bits at a time in a unit8_t as least significant bits
         for (int j = 0; j < 8; j++) {
             word |= (encodedMessage[i*8 + j] << j);
         }
+        Serial.println("word created");
+        Serial.println(word);
         // use hamming code function to decode the word
         bool decodeSuccess;
         uint8_t decoded = c.decode(word, decodeSuccess);
         if (!decodeSuccess){
             Serial.println("Error decoding did not work");
         }
+        Serial.println("decode success!");
         // cout << "decoded: " << decoded << endl;
         // store the decoded word in the decoded message as a true false array
         for (int j = 0; j < 4; j++){
