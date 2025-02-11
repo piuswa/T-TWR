@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
+#include "hamming.h"
 
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 using namespace ace_button;
@@ -240,7 +241,8 @@ void processReceivedMessage() {
     // Decode the message
     } else {
         // TODO do the error correction here (get message from the bits with correction codes)
-        String decoded_msg = decodeMessage(&received_msg[7 + offset]); // Skip the sync pattern
+        bool* error_corrected_msg = fecDecodeMessage(&received_msg[7 + offset]); // Skip the sync pattern
+        String decoded_msg = decodeMessage(error_corrected_msg); 
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
     }
@@ -271,6 +273,33 @@ String decodeMessage(const bool* boolArray) {
     return decodedMessage;
 }
 
+// ######################## FEC methods  ########################
+
+bool* fecEncodeMessage (bool* message, int size) {
+    int messageLength = size;
+    bool encodedMessage[messageLength*16];
+    bool decodedMessage[messageLength*8];
+    HammingCode c;
+    // encode the message
+    for (int i = 0; i < messageLength*2; i++){
+        uint8_t word = 0;
+        //encode 4 bits at a time as 8 bits in a unit8_t as least significant bits
+        for (int j = 0; j < 4; j++) {
+            word |= (message[i*4 + j] << j);
+        }
+        // use hamming code function to encode the word
+        uint8_t coded = c.encode(word);
+        // store the encoded word in the encoded message as a true false array
+        for (int j = 0; j < 8; j++){
+            encodedMessage[i*8+j] = coded & 1;
+            coded = coded >> 1;
+        }
+    }
+}
+
+bool* fecDecodeMessage (bool* message) {
+    
+}
 
 // ######################## Main Loop ########################
 void loop() {
@@ -278,15 +307,17 @@ void loop() {
     // ----- SENDING ------
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
+        int msg_length = userInput.length()*8+8;
         // TODO Add error handling for too long messages since we are restriceted to 256 characters by the 8 bit integer at the beginning of the message
         //convert String to byte 
         bool * result = convertStringToBool(userInput); 
         Serial.print("Sending: ");
         Serial.println(userInput);
         // TODO add error correction here (add correction codes to the message)
+        result = fecEncodeMessage(result, msg_length);
         // Send the binary message
         radio.transmit();
-        playMessage(ESP2SA868_MIC, 0, result, userInput.length()*8+8);
+        playMessage(ESP2SA868_MIC, 0, result, msg_length);
         // Safly delete the result array
         if (result != nullptr) {
             delete[] result;
