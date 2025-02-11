@@ -35,7 +35,7 @@ bool above_avg = true; // is the read value above the running average
 bool old_above_avg = true; // is the previous value above the running average
 unsigned long start_time = 0; // used to measure the time for the demodulation
 bool started_time = false; // used to check if we started the time for the demodulation
-int rvc_msg_size = 2200; // how big is our array to recieve messages
+int rvc_msg_size = 2200; // how big is our array to recieve messages TODO neets to be increased because of error correction or max length adjusted
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
 fecmagic::HammingCode c; // for the hamming code
