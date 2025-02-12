@@ -235,8 +235,8 @@ void processReceivedMessage() {
     for (int i = 0; i < current_received; i++){
         if (syncPatternBarkerCodeDetected(i)){
             offset = i;
-            Serial.print("Pattern detected at: ");
-            Serial.println(offset);
+            // Serial.print("Pattern detected at: ");
+            // Serial.println(offset);
             pattern_detected = true;
             break;
         }
@@ -249,16 +249,16 @@ void processReceivedMessage() {
     // Decode the message
     } else {
         // for debugging
-        Serial.print("recieved first 32 bits: ");
-        for (int i = (7 + offset); i < (32 + 7 + offset); i++) {
-            Serial.print(received_msg[i]);
-        }
-        Serial.println();
+        // Serial.print("recieved first 32 bits: ");
+        // for (int i = (7 + offset); i < (32 + 7 + offset); i++) {
+        //     Serial.print(received_msg[i]);
+        // }
+        // Serial.println();
         // apply forward error correction and return original message
         bool* error_corrected_msg = fecDecodeMessage(&received_msg[7 + offset]); // Skip the sync pattern
         // translate bits back to characters
         String decoded_msg = decodeMessage(error_corrected_msg); 
-        Serial.print("Decoded Message: ");
+        Serial.print("Recieved Message: ");
         Serial.println(decoded_msg);
         if (error_corrected_msg != nullptr) {
             delete[] error_corrected_msg;
@@ -301,27 +301,27 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
 
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
-        Serial.print("Encoding packet info, i = ");
-        Serial.println(i);
+        // Serial.print("Encoding packet info, i = ");
+        // Serial.println(i);
         //encode 4 bits at a time as 8 bits in a unit8_t as least significant bits
         for (int j = 0; j < 4; j++) {
             word |= (message[i*4 + j] << j);
         }
         // use hamming code function to encode the word
         uint8_t coded = c.encode(word);
-        Serial.print("Encoded word: ");
-        Serial.println(coded);
+        // Serial.print("Encoded word: ");
+        // Serial.println(coded);
         // store the encoded word in the encoded message as a true false array
         for (int j = 0; j < 8; j++){
             encodedMessage[i*8+j] = coded & 1;
             coded = coded >> 1;
         }
     }
-    Serial.print("packet info encoded: ");
-    for (int i = 0; i < messageLength*16; i++) {
-        Serial.print(encodedMessage[i]);
-    }
-    Serial.println();
+    // Serial.print("packet info encoded: ");
+    // for (int i = 0; i < messageLength*16; i++) {
+    //     Serial.print(encodedMessage[i]);
+    // }
+    // Serial.println();
     if (message != nullptr) {
         delete[] message;
         message = nullptr;
@@ -333,49 +333,47 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
 // Helper function to apply the decoding to the packet info first and then to the message body
 // The first byte, containing the length of the original message, is decoded first to figure out the length that needs to be decoded afterwards
 bool* fecDecodeMessage (bool* message) {
-    Serial.println("Decoding packet info");
+    // Serial.println("Decoding packet info");
     bool* msg_length = fecDecodeMessage(message, 1); // get packet info with length of message
     // convert bit to int, to get message length
-    Serial.println("packet info decoded");
+    // Serial.println("packet info decoded");
     int length = 0;
     for (int i = 0; i < 8; i++) {
         if (msg_length[i]) {
             length |= (1 << (7 - i));
         }
     }
-    Serial.print("Decoded length: ");
-    Serial.println(length);
+    // Serial.print("Decoded length: ");
+    // Serial.println(length);
     if (msg_length != nullptr) {
         delete[] msg_length;
         msg_length = nullptr;
     }
     // decode actual message
     bool* decodedMessage = fecDecodeMessage(message, length+1); // we apply the error correction to the whole message, including the first byte with the packet info
-    Serial.println("Decoded message");
+    // Serial.println("Decoded message");
     return decodedMessage;
 }
 
 // Apply the hamming error correction to a message of a given length
 bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
     bool* decodedMessage = new bool[messageLength*8]; // the decodede message contains one byte per symbol
-    Serial.println("array or decodede message created");
+    // Serial.println("array of decodede message created");
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
         //decode 8 bits at a time in a unit8_t as least significant bits
         for (int j = 0; j < 8; j++) {
             word |= (encodedMessage[i*8 + j] << j);
         }
-        Serial.println("word created");
-        Serial.println(word);
+        // Serial.println("word created");
+        // Serial.println(word);
         // use hamming code function to decode the word
         bool decodeSuccess;
         uint8_t decoded = c.decode(word, decodeSuccess);
         if (!decodeSuccess){
             Serial.println("Error decoding did not work");
         }
-        Serial.println("decode success!");
-        // cout << "decoded: " << decoded << endl;
-
+        // Serial.println("decode success!");
 
         // store the decoded word in the decoded message as a true false array
         for (int j = 0; j < 4; j++){
@@ -383,11 +381,11 @@ bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
             decoded = decoded >> 1;
         }
     }
-    Serial.print("packet info decoded: ");
-    for (int i = 0; i < messageLength*8; i++) {
-        Serial.print(decodedMessage[i]);
-    }
-    Serial.println();
+    // Serial.print("packet info decoded: ");
+    // for (int i = 0; i < messageLength*8; i++) {
+    //     Serial.print(decodedMessage[i]);
+    // }
+    // Serial.println();
     return decodedMessage;
 }
 
@@ -406,8 +404,8 @@ void loop() {
             bool * result = convertStringToBool(userInput);
             Serial.print("Sending: ");
             Serial.println(userInput);
-            Serial.print("Message length: ");
-            Serial.println(userInputLength);
+            // Serial.print("Message length: ");
+            // Serial.println(userInputLength);
             // Add forward error corretion to the message, doubling the message length
             result = fecEncodeMessage(result, userInputLength);
             // Send the binary message
@@ -455,16 +453,16 @@ void loop() {
         if (bit_length <= millis() - start_time){
             if (zeros < zeros_threshold) {
                 // print some debug information and store the received bit
-                Serial.print("Number of zeros: ");
-                Serial.println(zeros);
-                Serial.println("This is a 0");
+                // Serial.print("Number of zeros: ");
+                // Serial.println(zeros);
+                // Serial.println("This is a 0");
                 received_msg[current_received] = 0;
                 current_received++;
             } else {
                 // print some debug information and store the received bit
-                Serial.print("Number of zeros: ");
-                Serial.println(zeros);
-                Serial.println("This is a 1");
+                // Serial.print("Number of zeros: ");
+                // Serial.println(zeros);
+                // Serial.println("This is a 1");
                 received_msg[current_received] = 1;
                 current_received++;
             }
@@ -480,8 +478,8 @@ void loop() {
         timer_for_decode_started = false;
         start_decode_time = 0;
         processReceivedMessage(); 
-        Serial.print("Current received: ");
-        Serial.println(current_received);
+        // Serial.print("Current received: ");
+        // Serial.println(current_received);
         // Reset so we can receive a new message
         current_received = 0;
         if (received_msg != nullptr){
