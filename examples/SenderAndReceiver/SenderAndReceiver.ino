@@ -38,7 +38,7 @@ bool started_time = false; // used to check if we started the time for the demod
 int rvc_msg_size = 4400; // how big is our array to recieve messages
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
-fecmagic::HammingCode c; // for the hamming code
+fecmagic::HammingCode c; // class to encode / decode with the hamming code
 int bit_length = 250; // length of a bit in ms
 int zeros_threshold = 450; // threshold for a 1 or 0
 
@@ -140,7 +140,7 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
     // Send two zeros to ensure the receiver is ready
     ledcWriteTone(channel, 600);
     delay(bit_length*2);
-    // Send a synchronization sequence (10101010)
+    // Send a synchronization sequence (barker code)
     int pattern[7] = {1,1,1,-1,-1,1,-1}; 
     for (int i = 0; i < 7; i++) {
         if (pattern[i] == 1) {
@@ -244,13 +244,15 @@ void processReceivedMessage() {
         return;
     // Decode the message
     } else {
+        // for debugging
         Serial.print("recieved first 32 bits: ");
         for (int i = (7 + offset); i < (32 + 7 + offset); i++) {
             Serial.print(received_msg[i]);
         }
         Serial.println();
-        // TODO do the error correction here (get message from the bits with correction codes)
+        // apply forward error correction and return original message
         bool* error_corrected_msg = fecDecodeMessage(&received_msg[7 + offset]); // Skip the sync pattern
+        // translate bits back to characters
         String decoded_msg = decodeMessage(error_corrected_msg); 
         Serial.print("Decoded Message: ");
         Serial.println(decoded_msg);
@@ -288,10 +290,11 @@ String decodeMessage(const bool* boolArray) {
 
 // ######################## FEC methods  ########################
 
+// apply hamming encoding to a binary message, doubling the amount of bits required
+// for every 4 bits, additional 4 bits are added for the forward error corretion
 bool* fecEncodeMessage (bool* message, int messageLength) {
-    bool* encodedMessage = new bool[messageLength*16];
-    //fecmagic::HammingCode c;
-    // encode the message
+    bool* encodedMessage = new bool[messageLength*16]; // every character needs 2 bites (16 bits) 8 for the binary encoding and 8 for the hamming code 
+
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
         Serial.print("Encoding packet info, i = ");
@@ -322,10 +325,13 @@ bool* fecEncodeMessage (bool* message, int messageLength) {
     return encodedMessage;
 }
 
+
+// Helper function to apply the decoding to the packet info first and then to the message body
+// The first byte, containing the length of the original message, is decoded first to figure out the length that needs to be decoded afterwards
 bool* fecDecodeMessage (bool* message) {
     Serial.println("Decoding packet info");
     bool* msg_length = fecDecodeMessage(message, 1); // get packet info with length of message
-    // convert bit to int length
+    // convert bit to int, to get message length
     Serial.println("packet info decoded");
     int length = 0;
     for (int i = 0; i < 8; i++) {
@@ -340,13 +346,14 @@ bool* fecDecodeMessage (bool* message) {
         msg_length = nullptr;
     }
     // decode actual message
-    bool* decodedMessage = fecDecodeMessage(message, length+1);
+    bool* decodedMessage = fecDecodeMessage(message, length+1); // we apply the error correction to the whole message, including the first byte with the packet info
     Serial.println("Decoded message");
     return decodedMessage;
 }
 
+// Apply the hamming error correction to a message of a given length
 bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
-    bool* decodedMessage = new bool[messageLength*8];
+    bool* decodedMessage = new bool[messageLength*8]; // the decodede message contains one byte per symbol
     Serial.println("array or decodede message created");
     for (int i = 0; i < messageLength*2; i++){
         uint8_t word = 0;
@@ -393,7 +400,7 @@ void loop() {
         Serial.println(userInput);
         Serial.print("Message length: ");
         Serial.println(userInput.length());
-        // TODO add error correction here (add correction codes to the message)
+        // Add forward error corretion to the message, doubling the message length
         result = fecEncodeMessage(result, userInput.length());
         // Send the binary message
         radio.transmit();
