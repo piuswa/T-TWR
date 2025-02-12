@@ -39,6 +39,8 @@ int rvc_msg_size = 4400; // how big is our array to recieve messages
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
 fecmagic::HammingCode c; // for the hamming code
+int bit_length = 250; // length of a bit in ms
+int zeros_threshold = 450; // threshold for a 1 or 0
 
 
 bool timer_for_decode_started = false; // Timer for the decoding of the message
@@ -137,7 +139,7 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
 
     // Send two zeros to ensure the receiver is ready
     ledcWriteTone(channel, 600);
-    delay(500);
+    delay(bit_length*2);
     // Send a synchronization sequence (10101010)
     int pattern[7] = {1,1,1,-1,-1,1,-1}; 
     for (int i = 0; i < 7; i++) {
@@ -146,7 +148,7 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
         } else {
             ledcWriteTone(channel, 600);  // '0'
         }
-        delay(250); // Bit duration
+        delay(bit_length); // Bit duration
     }
 
     // Send the actual message
@@ -156,7 +158,7 @@ void playMessage(uint8_t pin, uint8_t channel, bool* message, int size) {
         } else {
             ledcWriteTone(channel, 1200);
         }
-        delay(250);
+        delay(bit_length);
     }
 
     ledcWriteTone(channel, 0);
@@ -433,9 +435,9 @@ void loop() {
         if (above_avg && !old_above_avg){
             zeros++;
         }
-        // after 250ms we have recieved a bit and check it the amount of zeros is below or above 450 which is the threshold for a 1 or 0
-        if (250 <= millis() - start_time){
-            if (zeros < 450) {
+        // after bit_length ms we have recieved a bit and check it the amount of zeros is below or above 450 which is the threshold for a 1 or 0
+        if (bit_length <= millis() - start_time){
+            if (zeros < zeros_threshold) {
                 // print some debug information and store the received bit
                 Serial.print("Number of zeros: ");
                 Serial.println(zeros);
