@@ -16,7 +16,7 @@ For the demodulation to work correctly, the window size is also set to 63 millis
 # User Guide
 This requires VSCode with the PlatformIO extenstion, at least 2 Lyligo T-TWR radios and one computer per radio.
 
-- In the file ``platformio.ini`` uncomment the import of the programm you want to use. 
+- In the file ``platformio.ini`` uncomment the import of the programm you want to use an comment the one you don't want. Currently our addition is uncommented.
 - On the bottom of the VSCode GUI click the tick to build the project
 - Connect each radio to a computer via the USB-C port and click the rightarrow next to the tick to uppload the project to your device.
 - Once the upload is done, click the plug symbol at the bottom of the GUI to open the serial monitor. 
