@@ -39,8 +39,8 @@ int rvc_msg_size = 4400; // how big is our array to recieve messages
 bool * received_msg; // Array to store the received message
 int current_received = 0; // Index of the current received bit
 fecmagic::HammingCode c; // class to encode / decode with the hamming code
-int bit_length = 250; // length of a bit in ms
-int zeros_threshold = 450; // threshold for a 1 or 0
+int bit_length = 63; // length of a bit in ms
+int zeros_threshold = 113; // threshold for a 1 or 0
 
 
 bool timer_for_decode_started = false; // Timer for the decoding of the message
