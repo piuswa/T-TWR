@@ -126,6 +126,10 @@ void setup()
     radio.setRxCXCSS(0);
     radio.setTxCXCSS(0);
 
+    //* disable the speaker
+    twr.routingSpeakerChannel(TWRClass::TWR_ESP_TO_SPK);
+    radio.setVolume(1);
+
     //* Create an array to store the received message
     received_msg = new bool[rvc_msg_size];
 }
@@ -393,24 +397,29 @@ void loop() {
     // ----- SENDING ------
     if (Serial.available()) {
         String userInput = Serial.readStringUntil('\n');
-        // TODO Add error handling for too long messages since we are restriceted to 256 characters by the 8 bit integer at the beginning of the message
-        //convert String to byte 
-        bool * result = convertStringToBool(userInput); 
-        Serial.print("Sending: ");
-        Serial.println(userInput);
-        Serial.print("Message length: ");
-        Serial.println(userInput.length());
-        // Add forward error corretion to the message, doubling the message length
-        result = fecEncodeMessage(result, userInput.length());
-        // Send the binary message
-        radio.transmit();
-        playMessage(ESP2SA868_MIC, 0, result, userInput.length()*16);
-        // Safly delete the result array
-        if (result != nullptr) {
-            delete[] result;
-            result = nullptr;
+        int userInputLength = userInput.length();
+        // error handling for too long messages since we are restriceted to 255 characters by the 8 bit integer at the beginning of the message
+        if (userInputLength > 255) {
+            Serial.println("Message too long, please enter a message with less than 256 characters.");
+        } else {
+            //convert String to byte 
+            bool * result = convertStringToBool(userInput);
+            Serial.print("Sending: ");
+            Serial.println(userInput);
+            Serial.print("Message length: ");
+            Serial.println(userInputLength);
+            // Add forward error corretion to the message, doubling the message length
+            result = fecEncodeMessage(result, userInputLength);
+            // Send the binary message
+            radio.transmit();
+            playMessage(ESP2SA868_MIC, 0, result, userInputLength*16);
+            // Safly delete the result array
+            if (result != nullptr) {
+                delete[] result;
+                result = nullptr;
+            }
+            radio.receive();
         }
-        radio.receive();
     }
 
     // ----- DEMODULATION ------
