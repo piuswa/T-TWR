@@ -1,0 +1,40 @@
+\documentclass[12pt]{report}
+\usepackage{graphicx} % Required for inserting images
+\graphicspath{{images/}}
+
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
+\usepackage{wrapfig}
+\usepackage{biblatex}
+\addbibresource{references.bib}
+
+
+\begin{document}
+
+\input{titlepage}
+
+\tableofcontents
+
+\chapter{Abstract}
+\input{chapters/abstract}
+
+\chapter{Introduction}
+\input{chapters/introduction}
+
+\chapter{Background}
+\input{chapters/Background}
+
+\chapter{Execution}
+\input{chapters/Execution}
+
+\chapter{Results} \label{results}
+\input{chapters/results}
+
+\chapter{Discussion} \label{discussion}
+\input{chapters/discussion}
+
+\chapter{Conclusion}
+\input{chapters/conclusion}
+
+\printbibliography
+
+\end{document}
