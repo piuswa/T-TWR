@@ -132,6 +132,7 @@ void setup()
 
     //* Create an array to store the received message
     received_msg = new bool[rvc_msg_size];
+    Serial.println("Setup done.");
 }
 
 
