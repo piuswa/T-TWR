@@ -13,3 +13,5 @@ tools
 *.toc
 *.run.xml
 *.fdb_latexmk
+*.blg
+*.bbl

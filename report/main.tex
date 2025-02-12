@@ -5,7 +5,11 @@
 \usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry}
 \usepackage{wrapfig}
 \usepackage{biblatex}
-\addbibresource{references.bib}
+\usepackage{titlesec}
+\renewcommand{\chaptername}{}  
+\renewcommand{\thechapter}{\arabic{chapter}}
+\titleformat{\chapter}[hang]{\normalfont\huge\bfseries}{\thechapter}{1em}{} 
+%\addbibresource{references.bib}
 
 
 \begin{document}
@@ -14,27 +18,20 @@
 
 \tableofcontents
 
-\chapter{Abstract}
 \input{chapters/abstract}
 
-\chapter{Introduction}
 \input{chapters/introduction}
 
-\chapter{Background}
-\input{chapters/Background}
+\input{chapters/background}
 
-\chapter{Execution}
-\input{chapters/Execution}
+\input{chapters/execution}
 
-\chapter{Results} \label{results}
 \input{chapters/results}
 
-\chapter{Discussion} \label{discussion}
 \input{chapters/discussion}
 
-\chapter{Conclusion}
 \input{chapters/conclusion}
 
-\printbibliography
+%\printbibliography
 
 \end{document}
