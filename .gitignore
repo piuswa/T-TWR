@@ -4,3 +4,12 @@ test
 tools
 *.csv
 /**/*.csv
+*.aux
+*.bcf
+*.fls
+*.log
+*.pdf
+*.synctex.gz
+*.toc
+*.run.xml
+*.fdb_latexmk
