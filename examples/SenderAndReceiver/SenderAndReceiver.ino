@@ -391,9 +391,9 @@ bool* fecDecodeMessage (bool* encodedMessage, int messageLength) {
 
 // ######################## Main Loop ########################
 void loop() {
-
+    int RCV_In = analogRead(RCV_CHANNEL);
     // ----- SENDING ------
-    if (Serial.available()) {
+    if (Serial.available() && RCV_In >= 1000) {
         String userInput = Serial.readStringUntil('\n');
         int userInputLength = userInput.length();
         // error handling for too long messages since we are restriceted to 255 characters by the 8 bit integer at the beginning of the message
@@ -419,10 +419,8 @@ void loop() {
             radio.receive();
         }
     }
-
     // ----- DEMODULATION ------
     // check if we receive a signal
-    int RCV_In = analogRead(RCV_CHANNEL);
     if (RCV_In < 1000){
         timer_for_decode_started = false;
         start_decode_time = 0;
