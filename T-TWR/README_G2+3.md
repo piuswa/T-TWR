@@ -5,7 +5,7 @@ This repository contains the implementation for the project of group 2 and 3 for
 Both groups work together to implement the basic functionality needed to send and receive information via the radios. Then work is divided into two groups.
 
 ### Group 2 - Packet Format
-Group 2 focuses on creating a packet format that uses synchronisation to determine the beginning of the message and uses forward error correction. The packet is composed of two blocks, one block of fixed length containing the packet information including the length of the second block. The second block contains the actual message. The packet info is chosen to have a length of 8 bits, limiting the message to 2^8-1 characters. 
+Group 2 focuses on creating a packet format that uses synchronisation to determine the beginning of the message and uses forward error correction. The packet is composed of two blocks, one block of fixed length which holds the length of the second block. The second block contains the actual message. The fixed size block is defined to have a length of 8 bits, limiting the maximum message length to 2^8-1 characters.
 For the forward error correction, every 4 bits are encoded using Hamming codes. 
 
 ### Group 3 - Modulation
