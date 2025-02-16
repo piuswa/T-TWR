@@ -3,7 +3,7 @@
 Describing the LILYGO device would be a good thing to do here instead of in Execution.
 
 Alternative:
-Explain everything about process in process and here, explain all the tools and methods used, like barker codes, mod/demod etc., assuming readers are not limited to seminar participants -> I think this might be appreciated by Tschudin}
+Explain everything about process in process and here, explain all the tools and methods used, like barker codes, 2FSK etc., assuming readers are not limited to seminar participants -> I think this might be appreciated by Tschudin}
 
 
 
@@ -18,6 +18,15 @@ The first step was to achieve a working connection between the two devices. This
 \section{Tools}
 [Add photos of lilygo and describe lilygo]
 Take photos from here: https://lilygo.cc/products/t-twr-rev2-1
+
+\section{Organization}
+Our group consists of two teams. Both teams worked together to implement the basic functionality needed to send and receive information via the radios. The rest of the work was split between two teams for more effective time management.
+
+\subsection{Team 1}
+Group 1 focuses on creating a packet format that uses synchronisation to determine the beginning of the message and uses forward error correction. The packet is composed of two blocks, one block of fixed length which holds the length of the second block. The second block contains the actual message. The fixed size block is defined to have a length of 8 bits, limiting the maximum message length to $2^8-1$ characters.
+For the forward error correction, every 4 bits are encoded using Hamming codes.
+\subsection{Team 2 - Modulation}
+Team 2 implements modulation at the sender side and demodulation at the receiver side. The modulation is implemented using 2-FSK, where "1" is represented by the frequency 1200 Hz and "0" by the frequency 600 Hz. The sender plays each frequency for a set duration of 63 milliseconds.
 
 
 \section{Methods}
