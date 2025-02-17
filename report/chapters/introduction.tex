@@ -30,5 +30,16 @@ Team 2 implements modulation at the sender side and demodulation at the receiver
 
 
 \section{Methods}
+
 \subsection{Modulation and Demodulation}
+
+Modulation and demodulation techniques are fundamental in digital communication. In this work, we employ a simple frequency-shift keying (FSK) approach, which has been widely studied in literature \cite{sklar2001digital}. Various techniques for demodulation, such as zero-crossing detection, FFT-based frequency analysis, and matched filtering, have been explored \cite{proakis2001digital}. Given the hardware constraints of the LilyGo T-TWR, we opted for a computationally efficient zero-crossing technique for demodulation.
+
+\subsection{2-FSK}
+
+2-FSK (Binary Frequency Shift Keying) is one of the most commonly used digital modulation techniques, where two distinct frequencies represent binary 0s and 1s. It is robust against noise and widely applied in low-power embedded communication \cite{anderson1995fsk}. In our implementation, we initially used 600 Hz and 1200 Hz to encode binary values. The choice of frequency spacing affects the robustness and error rate of the transmission \cite{feher1983wireless}. The demodulation method relies on counting zero crossings within a fixed time window, a trade-off between computational simplicity and detection accuracy.
+
 \subsection{Barker Codes}
+
+Barker codes are commonly used in digital communication for synchronization due to their excellent autocorrelation properties \cite{golomb1961barker}. These codes are particularly useful for detecting the beginning of a transmission in noisy environments. In our implementation, we use a 7-bit Barker code to mark the start of each message. This helps improve the reliability of packet detection and reduces the probability of false starts \cite{turin1974barker}. The Barker code ensures that even in the presence of noise, the receiver can correctly detect the start of a valid transmission.
+
