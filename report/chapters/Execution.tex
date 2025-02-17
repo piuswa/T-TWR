@@ -22,7 +22,7 @@ The T-TWRs were connected to computers via USB serial connections. Users could t
 
 \subsection{Forward Error Correction}
 
-The next step was implementing forward error correction. Initially, we attempted to develop our own error correction method but ultimately opted to use the existing C++ library \texttt{fecmagic}\footnote{https://github.com/Venemo/fecmagic}. Some adjustments were necessary to make the library compatible with the T-TWR. Since the library used integers instead of boolean arrays, we had to perform type conversions. The library was then used to encode 4-bit segments using Hamming codes, effectively doubling the message size. Both the length field and message characters were encoded. After transmission, the message was decoded 8 bits at a time. If decoding was unsuccessful, the device alerted the user via the serial connection.
+The next step was implementing forward error correction. Initially, we attempted to develop our own error correction method but ultimately opted to use the existing C++ library \texttt{fecmagic} \cite{kristof2020}. Some adjustments were necessary to make the library compatible with the T-TWR. Since the library used integers instead of boolean arrays, we had to perform type conversions. The library was then used to encode 4-bit segments using Hamming codes, effectively doubling the message size. Both the length field and message characters were encoded. After transmission, the message was decoded 8 bits at a time. If decoding was unsuccessful, the device alerted the user via the serial connection.
 
 \subsection{Speed Optimization}
 
