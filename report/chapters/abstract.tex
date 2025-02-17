@@ -1,3 +1,7 @@
 \chapter{Abstract}
-
-This report describes the results of a group work done as part of the HS 2024 Seminar Radio Packet Networks (72913-01), teached by Prof. Dr. Christian Tschudin. It explains how we were able to successfully encode, send and decode messages between two LilyGo T-TWR modules using the build-in radio transponder.
+%This report describes the results of a group work done as part of the HS 2024 Seminar Radio Packet Networks (72913-01), teached by Prof. Dr. Christian Tschudin. It explains how we were able to successfully encode, send and decode messages between two LilyGo T-TWR modules using the build-in radio transponder.
+In this project, we developed a custom packet format and modulation scheme for the LilyGo T-TWR, a developement board with Walkie-Talkie functionality. Our goal was to achieve message transmission between two different LilyGo T-TWRs, where each device is both receiver and sender. The data source and sink used were simple laptops, which sent bits to the LilyGo T-TWR for transmission and received bits from the device when receiving. 
+\\
+We chose \textit{Frequency Shift Keying (FSK)} modulation, where binary 0s and 1s are represented using distinct frequencies, namely 600Hz and 1200Hz. Further, a 7-bit Barker code at the start of each message ensures correct synchronization. To minimize errors we use Hamming codes to encode 4-bit data segments which can identify and correct bitwise errors introduced during transmission. 
+\\
+Our implementation achieved a transmission rate of 16 Baud where each bit is represented by a 62ms symbol duration. Despite the hardware constraints, we succeeded in establishing two-way message transmission and reception.

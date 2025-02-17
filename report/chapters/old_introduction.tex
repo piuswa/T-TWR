@@ -1,0 +1,45 @@
+\chapter{old Introduction (DELETE AFTER)}
+{NOTE: Not sure what to say here. I'd just give an overview of how we tackled the problem.
+Describing the LILYGO device would be a good thing to do here instead of in Execution.
+
+Alternative:
+Explain everything about process in process and here, explain all the tools and methods used, like barker codes, 2FSK etc., assuming readers are not limited to seminar participants -> I think this might be appreciated by Tschudin}
+
+
+
+
+
+The initial goal of this project was to set up radio communication between two Arduino T-TWR development boards completely from scratch to transmit data in the radio frequency spectrum. After intense trial and error, we discovered that directly accessing and interacting with the radio frequency chip on the board was not possible.\\
+
+After recognizing this limitation in close communication with Prof. Dr. Tschudin, we decided to try transmitting data over the audio frequency range.
+
+The first step was to achieve a working connection between the two devices. This turned turned out to be a challenge, since there was a considerable amount of noise. To mitigate the noise and make sure a clean signal could be received, we used [...]. This solved the problem elegantly and made the connection between both devices more reliable.
+
+\section{Tools}
+[Add photos of lilygo and describe lilygo]
+Take photos from here: https://lilygo.cc/products/t-twr-rev2-1
+
+\section{Organization}
+Our group consists of two teams. Both teams worked together to implement the basic functionality needed to send and receive information via the radios. The rest of the work was split between two teams for more effective time management.
+
+\subsection{Team 1}
+Group 1 focuses on creating a packet format that uses synchronisation to determine the beginning of the message and uses forward error correction. The packet is composed of two blocks, one block of fixed length which holds the length of the second block. The second block contains the actual message. The fixed size block is defined to have a length of 8 bits, limiting the maximum message length to $2^8-1$ characters.
+For the forward error correction, every 4 bits are encoded using Hamming codes.
+\subsection{Team 2 - Modulation}
+Team 2 implements modulation at the sender side and demodulation at the receiver side. The modulation is implemented using 2-FSK, where "1" is represented by the frequency 1200 Hz and "0" by the frequency 600 Hz. The sender plays each frequency for a set duration of 63 milliseconds.
+
+
+\section{Methods}
+
+\subsection{Modulation and Demodulation}
+
+Modulation and demodulation techniques are fundamental in digital communication. In this work, we employ a simple frequency-shift keying (FSK) approach, which has been widely studied in literature \cite{sklar2001digital}. Various techniques for demodulation, such as zero-crossing detection, FFT-based frequency analysis, and matched filtering, have been explored \cite{proakis2001digital}. Given the hardware constraints of the LilyGo T-TWR, we opted for a computationally efficient zero-crossing technique for demodulation.
+
+\subsection{2-FSK}
+
+2-FSK (Binary Frequency Shift Keying) is one of the most commonly used digital modulation techniques, where two distinct frequencies represent binary 0s and 1s. It is robust against noise and widely applied in low-power embedded communication \cite{anderson1995fsk}. In our implementation, we initially used 600 Hz and 1200 Hz to encode binary values. The choice of frequency spacing affects the robustness and error rate of the transmission \cite{feher1983wireless}. The demodulation method relies on counting zero crossings within a fixed time window, a trade-off between computational simplicity and detection accuracy.
+
+\subsection{Barker Codes}
+
+Barker codes are commonly used in digital communication for synchronization due to their excellent autocorrelation properties \cite{golomb1961barker}. These codes are particularly useful for detecting the beginning of a transmission in noisy environments. In our implementation, we use a 7-bit Barker code to mark the start of each message. This helps improve the reliability of packet detection and reduces the probability of false starts \cite{turin1974barker}. The Barker code ensures that even in the presence of noise, the receiver can correctly detect the start of a valid transmission.
+

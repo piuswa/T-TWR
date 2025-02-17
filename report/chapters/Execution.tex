@@ -1,30 +1,29 @@
 \chapter{Execution}
+In this chapter we present the execution of the project. We introduce the LilyGo T-TWR in more detail and describe the repository and library used. We further give a detailed overview of the implementation of all project aspects.
 \section{Tools}
-\textbf{TODO: } Lilygo t twr beschriibe \\
-hends i C gmacht \\
-lily go t twr github repo als usgang gno 
+To implement our custom modulation and packet format, we used the LilyGo T-TWR, an embedded development board designed for wireless communication. The LilyGo T-TWR features a SA868 Wireless Transceiver, WiFi, Bluetooth, and a built-in Walkie-Talkie functionality. However, sending and receiving structured digital messages is not supported by default.
+\\ \\
+Our implementation was based on an existing LilyGo T-TWR GitHub repository \textit{TODO: cite repo}, which provided the foundation for setting up the hardware and communication interface. We extended this base with our own modulation, demodulation, and packet format implementation.
+\\ \\
+We wrote our code in C++ to program the LilyGo T-TWR firmware and PlatformIO in VSCode as our development environment. Further, we also used Python scripts to analyze received signals using Fast Fourier Transformation. For Hamming error correciont we used the fecmagic library \cite{kristof2020}.
+\\ \ 
+The LilyGo T-TWR boards were connected to laptops via USB, where they interfaced with a serial monitor to send and receive messages. This setup allowed for easy debugging and real-time communication testing.
 
 \section{Implementation}
-
-\subsection{Modulation}
-
+% modulation
 First, we implemented the modulation of 0s and 1s using two different frequencies. We initially started with 200 Hz and 400 Hz but later changed this to 600 Hz and 1200 Hz to improve transmission. A 1 is represented by 1200 Hz, while a 0 is represented by 600 Hz. The modulation was directly implemented in C++ and tested on the LilyGo T-TWR. We verified the implementation by reading all the values on the receiving LilyGo T-TWR and analyzing them using a Python script that employed a Fast Fourier Transform (FFT) to extract the frequencies.
-
-\subsection{Demodulation}
-
+\\ \\
+% demodulation
 Next, we attempted to implement demodulation on the T-TWR itself. However, FFT was not feasible due to excessive memory usage and slow performance. Instead, we implemented a simple demodulation technique that counted how many times a sine wave crossed the zero line within a specific time frame. Since the zero line might fluctuate, it was continuously updated using a running average. If the number of zero crossings exceeded a certain threshold, the signal was interpreted as a 1; otherwise, it was interpreted as a 0. This approach worked well, allowing us to transmit data between two T-TWRs. Initially, each transmitted bit had a duration of 250 milliseconds, resulting in a transmission rate of 4 Baud. This was later improved to 16 Baud by reducing the symbol duration to 63 milliseconds.
-
-\subsection{Packet Format and Message Transmission}
-
+\\ \\
+% packet format & message transmission
 After achieving basic 0s and 1s transmission, we implemented a simple packet format. The first 8 bits contained the message length, followed by each character encoded in ASCII. Since each ASCII character is 8 bits long, this limited the maximum message length to 255 characters. To detect the start of a message, we first checked whether the device was receiving any signal and then transmitted a Barker code of length 7 at the beginning of each message. This ensured reliable message detection. After receiving the Barker code, the length field was read, allowing for precise decoding of the expected number of characters. This enabled message transmission from one T-TWR to another.
-
+\\ 
 The T-TWRs were connected to computers via USB serial connections. Users could type messages into the terminal, and the transmitting T-TWR would send the message to the receiving T-TWR, which would then forward the decoded message to its connected computer via the serial connection.
-
-\subsection{Forward Error Correction}
-
+\\ \\
+% forward error correction
 The next step was implementing forward error correction. Initially, we attempted to develop our own error correction method but ultimately opted to use the existing C++ library \texttt{fecmagic} \cite{kristof2020}. Some adjustments were necessary to make the library compatible with the T-TWR. Since the library used integers instead of boolean arrays, we had to perform type conversions. The library was then used to encode 4-bit segments using Hamming codes, effectively doubling the message size. Both the length field and message characters were encoded. After transmission, the message was decoded 8 bits at a time. If decoding was unsuccessful, the device alerted the user via the serial connection.
-
-\subsection{Speed Optimization}
-
+\\ \\
+% speed optimization
 The final step was tuning the connection speed. This was achieved by reducing the bit duration, which also required adjusting the threshold for interpretation. Through trial and error, we settled on a bit duration of 63 milliseconds, corresponding to a transmission rate of 16 Baud. Since forward error correction doubled the message size, the net transmission rate was approximately 1 byte per second. Although this speed is relatively low, it was the fastest we could achieve while maintaining reliable character decoding.
 
