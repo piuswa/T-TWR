@@ -2,13 +2,56 @@
 In this chapter we introduce fundamental theoretical concepts utilized in our project. We first explain the FSK modulation and demodulation. We then introduce Barker codes, which we use for synchronization in the project. Finally, we talk about Hamming codes which we use for error correction.
 
 \section{FSK Modulation and Demodulation}
-\textbf{TOOD: explain what modulation \& demodulation is} \\ 
-Modulation and demodulation techniques are fundamental in digital communication. In this work, we employ a simple frequency-shift keying (FSK) approach, which has been widely studied in literature \cite{sklar2001digital}. Various techniques for demodulation, such as zero-crossing detection, FFT-based frequency analysis, and matched filtering, have been explored \cite{proakis2001digital}. Given the hardware constraints of the LilyGo T-TWR, we opted for a computationally efficient zero-crossing technique for demodulation.
-\\ \\ 
-2-FSK (Binary Frequency Shift Keying) is one of the most commonly used digital modulation techniques, where two distinct frequencies represent binary 0s and 1s. It is robust against noise and widely applied in low-power embedded communication \cite{anderson1995fsk}. In our implementation, we initially used 600 Hz and 1200 Hz to encode binary values. The choice of frequency spacing affects the robustness and error rate of the transmission \cite{feher1983wireless}. The demodulation method relies on counting zero crossings within a fixed time window, a trade-off between computational simplicity and detection accuracy.
+Modulation and demodulation are fundamental processes in digital communication. Modulation converts digital data into an analog signal suitable for transmission, while demodulation extracts the original digital data from the received analog signal. 
+\\\\
+Frequency Shift Keying (FSK) is a digital modulation scheme where data is encoded by varying the frequency of a carrier signal. In Binary Frequency Shift Keying (BFSK), the simplest form of FSK, binary 1 and 0 are represented by two distinct frequencies. This method allows digital data to be transmitted over analog channels such as radio waves or acoustic signals.
+\\ 
+The demodulation of an FSK signal involves extracting the transmitted binary data from the received analog waveform. One of them is \textit{Fast Fourier Transformation (FFT)} where the frequency spectrum is analyzed to identify the dominant frequency at a given time. FFT overall provides accurate results, however, it can be computationally intensive and use a significant amount of memory. In instances where resources or hardware power is limited, FFT might not be a great match. Another demodulation method is \textit{zero-crossing detection}. In this approach we count how often the signal crosses the zero amplitude point to determine the frequency. zero-crossing detection is susceptible to noise. In instances where we have a very noisy environment, zero-crossing detection might not be ideal. If noise is not a problem, then it represents a resource-efficient and simple but working demodulation method.
+\\ \\
+While there are several other variations of FSK like \textit{Continuous Phase FSK} or \textit{Gaussian FSK} and demodulation option, we will not discuss them in further detail as we only experimented with BFSK as our modulation scheme.
 
 \section{Barker Codes}
-Barker codes are commonly used in digital communication for synchronization due to their excellent autocorrelation properties \cite{golomb1961barker}. These codes are particularly useful for detecting the beginning of a transmission in noisy environments. In our implementation, we use a 7-bit Barker code to mark the start of each message. This helps improve the reliability of packet detection and reduces the probability of false starts \cite{turin1974barker}. The Barker code ensures that even in the presence of noise, the receiver can correctly detect the start of a valid transmission. \\
+\textit{Barker codes} are binary sequences with excellent autocorrelation properties, they were first developed by H.R. Barker. This makes them ideal for synchronization, as they are easy to spot, even in a very noisy environment where other synchronization methods may struggle. There exist a limited amount of Barker codes, all shown in Table~\ref{tab:barker_codes}.
+\begin{table}[h]
+    \label{tab:barker_codes}
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|l|}
+        \hline
+        \textbf{Length} & \textbf{Barker Code} \\ 
+        \hline
+        2 & \textcolor{green!50!black}{+1} \textcolor{red}{-1} \quad or \quad \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \\ 
+        \hline
+        3 & \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \\ 
+        \hline
+        4 & \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \quad or \quad \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{red}{-1} \\ 
+        \hline
+        5 & \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \\ 
+        \hline
+        7 & \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \\ 
+        \hline
+        11 & \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \\ 
+        \hline
+        13 & \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \textcolor{red}{-1} \textcolor{green!50!black}{+1} \\ 
+        \hline
+    \end{tabular}
+    \caption{All Barker codes.}
+    \label{tab:barker_codes}
+\end{table}
+The autocorrelation function of a Barker code exhibits minimal sidelobes, creating a strong peak when correlated with itself. This allows the receiver to detect its presence and clearly differentiate it from noise. Figure~\ref{fig:barker_code} illustrates the autocorrelation function of a 7-bit Barker code, the peak at zero shift is clearly visible.
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.5]{images/ugly_barker_code.PNG}
+    \caption{Autocorrelation function of the Barker code of length 7.}
+    \label{fig:barker_code}
+\end{figure}
+Despite their advantages, Barker codes have some limitations. The first is their limited length. There are no Barker codes longer than 13 bits, which limits their use to short synchronization sequences. Furthermore, Barker codes do not provide error correction, they only improve synchronization. In noisy conditions, additional steps must be taken.
+\\ \\
+Barker codes are used in various real-world applications such as radar systems, Code Division Multiple Access (CDMA) or GPS synchronization.
 
 \section{Hamming Code}
-\textbf{TODO}
+\textit{Hamming codes} are a family of error-detecting and error-correcting codes developed by Richard Hamming. They are used in digital communication to detect and correct single-bit errors. Transmission can obtain errors through noise, interference or signal degradation and lead to a misinterpretation of the data. Therefore, it is essential to detect and correct possible errors. Hamming codes achieve this by including parity bits to the data.
+\\ \\
+A Hamming code \textit{(n, k)} is an encoding scheme where we have a codeword of length $n$, $k$ data bits and $n-k$ redundant bits, also called parity bits. The parity bits are what enables Hamming codes to detect and correct errors. For example, a Hamming (7, 4) code contains 4 data bits and 3 parity bits. Via the XOR operator, the receiver can recalculate the parity bits and compare them with the received values. However, Hamming codes can only identify and correct a single corrupted bit. They can also detect two flipped bits, but not correct them. Error detection and correction of three or more errors is not possible, more robust error correction techniques would be needed. 
+\\ \\
+Including error correction of any kind introduces overhead, for example in Hamming codes parity bits are needed which reduce the transmission rate. Alternatives such as Reed-Solomon however cause even greater overhead, but are also more powerful in comparison. Hamming codes are however still efficient enough if we do not expect many errors in transmission, for example if we do not send information in noisy environments.

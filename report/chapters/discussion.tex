@@ -1,27 +1,33 @@
 \chapter{Discussion}
 
-TODO: Give me a list of things we did well + not well
-Then I can do this section.
+We managed to implement all desired functions on the LilyGo T-TWR itself. It can transform a message received via the serial connection into a packet, add forward error correction, modulate this into audio and transmit the packet. After receiving a transmission, it can demodulate the packet, correct certain errors, and send it via the serial connection to the receiving user.
+\\ \\
+On the other hand, there is also room for improvement. With the forward error correction doubling the size of each message and the already rather slow transmission rate, the resulting transmission rate of 1 Byte per second is rather slow. With careful tuning, this rate could certainly be improved. The demodulation method of counting zeros is also not ideal, since Fourier transformation would most certainly result in more accurate results. We explored this method but found it to be too computationally expensive for such a low-powered device. With more powerful hardware this would however be possible. In this project only BFSK was used but it should be possible to use more than two frequencies to encode more than one bit simultaneously. We did not explore this in this project since it was already difficult to implement binary frequency shift keying but it is certainly worth looking into in future projects and exploring if it enables higher transmission rates. There are also other modulation methods apart from BFSK that were not explored due to device limiting us to modulate audio frequencies and not the radio waves directly.
+\\ \\
+We also attempted to write our own implementation for low density parity check codes but this was more complex than expected. Instead we ended up using a library for Hamming codes. This made a few type conversions necessary since the library worked with different types than we did. Writing an implementation better suited to our needs would certainly improve efficiency. Implementing a TCP like protocol for retransmission instead of the forward error correction would also enable us to use the full transmission rate for information instead of only half of it with the other half being used by error correction.
+\\ \\ 
+During experimentation we were limited to transmitting underground due to legality issues. With an amateur radio license and if we were to send on the permitted frequencies we could carry out experiments in different environments, e.g., with a lot of noise, to test our current implementation or possible future improvements and adaptations.
+\\ \\ 
+In conclusion, we achieved the goal of the project and created a working two-way communication system using two LilyGo T-TWR devices by creating our own packet format and custom modulation. However, we ran into several challenges due to the limitations of the LilyGo T-TWR and had to simplify certain aspects of our initial plan. Expanding the project to include different modulation schemes and better error correction methods would be a possible topic for future experimentation.
+% Good:
+% \begin{itemize}
+%     \item everything on device itself and works:
+%     \begin{itemize}
+%         \item modulation
+%         \item demodulation
+%         \item packet format
+%         \item message transmission
+%         \item forward error correction
+%     \end{itemize}
+% \end{itemize}
 
-Good:
-\begin{itemize}
-    \item everything on device itself and works:
-    \begin{itemize}
-        \item modulation
-        \item demodulation
-        \item packet format
-        \item message transmission
-        \item forward error correction
-    \end{itemize}
-\end{itemize}
-
-Bad:
-\begin{itemize}
-    \item slow transmission rate (1 Byte per second with error correction)
-    \item only FSK
-    \item no Fourier Transform (instead we are counting zeros)
-    \item only do it with audio and not radio waves itself
-    \item we attempted to use "low density parity check"-codes for error correction, but creating an implementation ourselves was more complex than expected and instead we found a library for hamming codes that worked.
-\end{itemize}
+% Bad:
+% \begin{itemize}
+%     \item slow transmission rate (1 Byte per second with error correction)
+%     \item only FSK
+%     \item no Fourier Transform (instead we are counting zeros)
+%     \item only do it with audio and not radio waves itself
+%     \item we attempted to use "low density parity check"-codes for error correction, but creating an implementation ourselves was more complex than expected and instead we found a library for hamming codes that worked.
+% \end{itemize}
 
 

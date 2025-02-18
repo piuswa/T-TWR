@@ -3,7 +3,7 @@ In this chapter we present the execution of the project. We introduce the LilyGo
 \section{Tools}
 To implement our custom modulation and packet format, we used the LilyGo T-TWR, an embedded development board designed for wireless communication. The LilyGo T-TWR features a SA868 Wireless Transceiver, WiFi, Bluetooth, and a built-in Walkie-Talkie functionality. However, sending and receiving structured digital messages is not supported by default.
 \\ \\
-Our implementation was based on an existing LilyGo T-TWR GitHub repository \textit{TODO: cite repo}, which provided the foundation for setting up the hardware and communication interface. We extended this base with our own modulation, demodulation, and packet format implementation.
+Our implementation was based on an existing LilyGo T-TWR GitHub repository \cite{lilygo2024}, which provided the foundation for setting up the hardware and communication interface. We extended this base with our own modulation, demodulation, and packet format implementation.
 \\ \\
 We wrote our code in C++ to program the LilyGo T-TWR firmware and PlatformIO in VSCode as our development environment. Further, we also used Python scripts to analyze received signals using Fast Fourier Transformation. For Hamming error correciont we used the fecmagic library \cite{kristof2020}.
 \\ \ 
@@ -11,6 +11,8 @@ The LilyGo T-TWR boards were connected to laptops via USB, where they interfaced
 
 \section{Implementation}
 % modulation
+After looking into the schematics\cite{lilygo2024} of the LilyGo T-TWR we realized that it was not easily possible to manipulate the radio waves produced by the device. It was however possible to play audio using the integrated ESP-32 and transmit this using the built in radio. This means we are modulating and demodulating audio signals which are sent over radio waves.
+\\
 First, we implemented the modulation of 0s and 1s using two different frequencies. We initially started with 200 Hz and 400 Hz but later changed this to 600 Hz and 1200 Hz to improve transmission. A 1 is represented by 1200 Hz, while a 0 is represented by 600 Hz. The modulation was directly implemented in C++ and tested on the LilyGo T-TWR. We verified the implementation by reading all the values on the receiving LilyGo T-TWR and analyzing them using a Python script that employed a Fast Fourier Transform (FFT) to extract the frequencies.
 \\ \\
 % demodulation
